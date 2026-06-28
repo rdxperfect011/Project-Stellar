@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard | Shrine{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#0f0d0c',
+                        foreground: '#fafafa',
+                        primary: '#D4AF37',
+                        'primary-foreground': '#000000',
+                        muted: '#262626',
+                        'muted-foreground': '#a3a3a3',
+                        border: '#262626',
+                        card: '#171717',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-card text-foreground font-sans antialiased min-h-screen flex">
+    
+    <!-- Sidebar -->
+    <aside class="w-64 bg-background border-r border-border fixed h-screen top-0 left-0 pt-8 hidden md:block">
+        <div class="px-6 mb-12">
+            <h2 class="font-serif text-xl tracking-widest text-primary">SHRINE</h2>
+            <p class="text-xs text-muted-foreground mt-1">Admin Portal</p>
+        </div>
+        <nav class="px-4 space-y-2">
+            <a href="{{ url_for('admin.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 text-sm text-muted-foreground hover:bg-card hover:text-primary transition-colors rounded-md">
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin.bookings') }}" class="flex items-center space-x-3 px-4 py-3 text-sm text-muted-foreground hover:bg-card hover:text-primary transition-colors rounded-md">
+                <span>Bookings & Enquiries</span>
+            </a>
+            <a href="{{ url_for('admin.inquiries') }}" class="flex items-center space-x-3 px-4 py-3 text-sm text-muted-foreground hover:bg-card hover:text-primary transition-colors rounded-md">
+                <span>Contact Messages</span>
+            </a>
+            <a href="{{ url_for('admin.availability') }}" class="flex items-center space-x-3 px-4 py-3 text-sm text-muted-foreground hover:bg-card hover:text-primary transition-colors rounded-md">
+                <span>Availability</span>
+            </a>
+            <a href="{{ url_for('admin.gallery') }}" class="flex items-center space-x-3 px-4 py-3 text-sm text-muted-foreground hover:bg-card hover:text-primary transition-colors rounded-md">
+                <span>Gallery</span>
+            </a>
+            <a href="{{ url_for('admin.content') }}" class="flex items-center space-x-3 px-4 py-3 text-sm text-muted-foreground hover:bg-card hover:text-primary transition-colors rounded-md">
+                <span>Content Management</span>
+            </a>
+            <a href="{{ url_for('admin.emails') }}" class="flex items-center space-x-3 px-4 py-3 text-sm text-muted-foreground hover:bg-card hover:text-primary transition-colors rounded-md">
+                <span>Email Templates</span>
+            </a>
+            <a href="{{ url_for('admin.audit_logs') }}" class="flex items-center space-x-3 px-4 py-3 text-sm text-muted-foreground hover:bg-card hover:text-primary transition-colors rounded-md">
+                <span>Audit Logs</span>
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="flex items-center space-x-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors rounded-md mt-8">
+                <span>Sign Out</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 flex flex-col min-h-screen">
+        
+        <!-- Top Navbar -->
+        <header class="bg-background border-b border-border h-16 flex items-center justify-between px-8 sticky top-0 z-40">
+            <div class="flex-1"></div> <!-- Spacer -->
+            
+            <div class="flex items-center space-x-6">
+                <!-- Notifications -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" @click.away="open = false" class="relative text-muted-foreground hover:text-foreground transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        {% if unread_count and unread_count > 0 %}
+                        <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-4 w-4 bg-primary text-[9px] font-bold text-primary-foreground items-center justify-center">{{ unread_count }}</span>
+                        </span>
+                        {% endif %}
+                    </button>
+                    
+                    <!-- Dropdown -->
+                    <div x-show="open" x-transition.opacity class="absolute right-0 mt-2 w-80 bg-card border border-border rounded-md shadow-2xl py-2 z-50" style="display: none;">
+                        <div class="px-4 py-2 border-b border-border">
+                            <h3 class="text-sm font-semibold text-foreground">Notifications</h3>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto">
+                            {% for notif in unread_notifications %}
+                            <a href="{{ notif.link or '#' }}" class="block px-4 py-3 hover:bg-muted/50 border-b border-border/50 transition-colors">
+                                <p class="text-xs text-foreground">{{ notif.message }}</p>
+                                <p class="text-[10px] text-muted-foreground mt-1">{{ notif.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            </a>
+                            {% else %}
+                            <div class="px-4 py-6 text-center">
+                                <p class="text-xs text-muted-foreground">No new notifications.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profile -->
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-primary/20 border border-primary flex items-center justify-center text-primary font-bold text-sm">
+                        A
+                    </div>
+                    <span class="text-sm font-medium text-foreground hidden sm:block">Admin</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="p-8 bg-card flex-1 relative">
+            {% include 'components/_alerts.html' %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+</body>
+</html>

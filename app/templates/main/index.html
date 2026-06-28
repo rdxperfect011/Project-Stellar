@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Shrine | Home Stay{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative h-screen flex items-center justify-center overflow-hidden">
+    <!-- Placeholder Background -->
+    <div class="absolute inset-0 z-0">
+        <div class="absolute inset-0 bg-background/60 z-10"></div>
+        <img src="{{ url_for('static', filename='images/hero_bg.jpeg') }}" alt="Mountain Homestay" class="w-full h-full object-cover object-center" />
+    </div>
+
+    <div class="relative z-20 text-center px-4 max-w-4xl mx-auto mt-20">
+        <span class="text-primary tracking-[0.3em] text-sm md:text-base uppercase mb-6 block font-medium">A Sanctuary Above</span>
+        <h1 class="text-5xl md:text-7xl lg:text-8xl font-serif text-foreground mb-8 leading-tight">
+            Find Your <br/><span class="italic text-primary">Peace</span>
+        </h1>
+        <p class="text-lg md:text-xl text-foreground/80 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
+            Experience the unfiltered beauty of the mountains in our handcrafted haven. Where luxury meets authenticity.
+        </p>
+    </div>
+</section>
+
+<!-- Availability Widget -->
+<section class="relative z-30 -mt-16 sm:-mt-24">
+    {% include 'main/components/availability_widget.html' %}
+</section>
+
+<section class="bg-card py-24">
+    <div class="container mx-auto px-6 lg:px-12">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-primary tracking-[0.2em] text-sm uppercase mb-4 block font-medium">Welcome to Shrine</span>
+            <h2 class="text-4xl font-serif mb-6">Experience Comfort, Cleanliness & Modern Hospitality</h2>
+            <p class="text-muted-foreground leading-relaxed mb-6">
+                Step into a guest house where contemporary design meets exceptional comfort. Designed for today's traveler, our property combines stylish interiors, spotless rooms, modern amenities, and attentive service to create a memorable stay experience.
+            </p>
+            <p class="text-muted-foreground leading-relaxed">
+                From the moment you arrive, you'll be welcomed by a professional reception area and thoughtfully maintained surroundings. Our elegant guest rooms feature comfortable beds, soothing décor, smart space utilization, flat-screen entertainment, tea and coffee facilities, and spacious attached bathrooms finished with premium-quality fittings.
+            </p>
+            <p class="text-muted-foreground leading-relaxed mt-6">
+                Whether you're visiting for business meetings, family occasions, tourism, or religious travel, our guest house provides the perfect balance of convenience, comfort, and affordability.
+            </p>
+        </div>
+
+        <div class="mt-20">
+            <h3 class="text-2xl font-serif text-center mb-10">Why Guests Choose Us</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-foreground/80">Modern and elegantly furnished rooms</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-foreground/80">Spotlessly clean and hygienic environment</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-foreground/80">Spacious attached bathrooms</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-foreground/80">Comfortable premium bedding</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-foreground/80">Flat-screen TV entertainment</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-foreground/80">Tea & coffee station in rooms</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-foreground/80">Daily housekeeping services</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-foreground/80">Friendly and responsive hospitality</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <svg class="w-6 h-6 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-foreground/80">Peaceful atmosphere for relaxation</span>
+                </div>
+                <div class="flex items-start gap-4 lg:col-span-3 lg:justify-center">
+                    <svg class="w-6 h-6 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-foreground/80">Ideal for solo travelers, couples, families, and business guests</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-24 pt-16 border-t border-border">
+            <h3 class="text-2xl font-serif text-center mb-10">Perfect For</h3>
+            <div class="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
+                <span class="bg-background border border-border px-6 py-3 rounded-sm text-sm text-foreground/80 tracking-wide">Pilgrims visiting Jammu's famous temples</span>
+                <span class="bg-background border border-border px-6 py-3 rounded-sm text-sm text-foreground/80 tracking-wide">Families exploring Jammu and nearby attractions</span>
+                <span class="bg-background border border-border px-6 py-3 rounded-sm text-sm text-foreground/80 tracking-wide">Business travelers seeking a comfortable stay</span>
+                <span class="bg-background border border-border px-6 py-3 rounded-sm text-sm text-foreground/80 tracking-wide">Couples and solo travelers</span>
+                <span class="bg-background border border-border px-6 py-3 rounded-sm text-sm text-foreground/80 tracking-wide">Guests traveling to Katra and Vaishno Devi</span>
+                <span class="bg-background border border-border px-6 py-3 rounded-sm text-sm text-foreground/80 tracking-wide">Long-stay and short-stay visitors</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-24 bg-background relative overflow-hidden" x-data="{ reviewModalOpen: false }">
+    <div class="container mx-auto px-6 lg:px-12">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-16">
+            <div class="max-w-2xl">
+                <span class="text-primary tracking-[0.2em] text-sm uppercase mb-4 block font-medium">Guest Stories</span>
+                <h2 class="text-4xl md:text-5xl font-serif text-foreground leading-tight">
+                    Words from our <span class="italic text-primary">Guests</span>
+                </h2>
+            </div>
+            <button @click="reviewModalOpen = true" class="mt-6 md:mt-0 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border border-primary px-8 py-3 tracking-widest text-sm transition-all duration-300">
+                LEAVE A REVIEW
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for testimonial in testimonials %}
+            <div class="bg-card border border-border/50 p-8 flex flex-col justify-between hover:border-primary/30 transition-colors">
+                <div>
+                    <div class="flex text-primary mb-6">
+                        {% for i in range(testimonial.rating) %}
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                        {% endfor %}
+                    </div>
+                    <p class="text-foreground/80 font-light leading-relaxed mb-8">
+                        "{{ testimonial.review }}"
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-serif text-lg text-foreground">{{ testimonial.guest_name }}</h4>
+                    {% if testimonial.location %}
+                    <span class="text-xs text-muted-foreground tracking-widest uppercase">{{ testimonial.location }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="col-span-full py-12 text-center border border-border/50 bg-card/50">
+                <p class="text-muted-foreground font-light">Be the first to share your experience with us.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Leave Review Modal -->
+    <div x-show="reviewModalOpen" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="reviewModalOpen" x-transition.opacity class="fixed inset-0 bg-background/90 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+            
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
+            <div x-show="reviewModalOpen" 
+                 x-transition:enter="ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave="ease-in duration-200" 
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 @click.away="reviewModalOpen = false"
+                 class="inline-block align-bottom bg-card border border-border text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                
+                <div class="absolute top-0 right-0 pt-4 pr-4">
+                    <button @click="reviewModalOpen = false" type="button" class="text-muted-foreground hover:text-foreground focus:outline-none">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                
+                <div class="px-8 py-10">
+                    <h3 class="text-2xl font-serif text-foreground mb-2" id="modal-title">Share Your Experience</h3>
+                    <p class="text-muted-foreground font-light text-sm mb-8">We'd love to hear about your stay at Shrine.</p>
+                    
+                    <form action="{{ url_for('main.submit_review') }}" method="POST" class="space-y-6">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs uppercase tracking-widest text-muted-foreground mb-2">Name</label>
+                                <input type="text" name="guest_name" required class="w-full bg-background border border-border px-4 py-3 text-foreground focus:outline-none focus:border-primary transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-xs uppercase tracking-widest text-muted-foreground mb-2">Location</label>
+                                <input type="text" name="location" placeholder="City, Country" class="w-full bg-background border border-border px-4 py-3 text-foreground focus:outline-none focus:border-primary transition-colors">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs uppercase tracking-widest text-muted-foreground mb-2">Rating</label>
+                            <select name="rating" class="w-full bg-background border border-border px-4 py-3 text-foreground focus:outline-none focus:border-primary transition-colors appearance-none">
+                                <option value="5">5 Stars - Exceptional</option>
+                                <option value="4">4 Stars - Very Good</option>
+                                <option value="3">3 Stars - Average</option>
+                                <option value="2">2 Stars - Poor</option>
+                                <option value="1">1 Star - Terrible</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs uppercase tracking-widest text-muted-foreground mb-2">Your Review</label>
+                            <textarea name="review" required rows="4" class="w-full bg-background border border-border px-4 py-3 text-foreground focus:outline-none focus:border-primary transition-colors resize-none"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-primary text-primary-foreground py-4 tracking-widest uppercase text-sm hover:bg-primary/90 transition-colors">
+                            Submit Review
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

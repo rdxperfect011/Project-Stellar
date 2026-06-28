@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}500 - Internal Server Error | Shrine{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-24 px-6 text-center">
+    <div>
+        <h1 class="text-6xl md:text-8xl font-serif text-red-500 mb-6">500</h1>
+        <h2 class="text-2xl md:text-3xl font-medium text-foreground mb-4">Internal Server Error</h2>
+        <p class="text-muted-foreground mb-8 max-w-md mx-auto">Oops! Something went wrong on our end. Please try again later or contact support if the problem persists.</p>
+        <a href="{{ url_for('main.index') }}" class="inline-block border border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-3 text-sm tracking-widest uppercase transition-all duration-300 rounded-sm">
+            Return to Home
+        </a>
+    </div>
+</div>
+{% endblock %}

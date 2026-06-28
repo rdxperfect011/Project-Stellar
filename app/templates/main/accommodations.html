@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Accommodations | Shrine{% endblock %}
+{% block content %}
+<div class='container mx-auto px-6 py-32 lg:px-12'>
+    <div class="text-center mb-16">
+        <span class="text-primary tracking-[0.3em] text-sm md:text-base uppercase mb-4 block font-medium">Your Sanctuary</span>
+        <h1 class='text-4xl md:text-6xl font-serif text-foreground mb-6'>Accommodations</h1>
+        <p class='text-lg text-muted-foreground max-w-2xl mx-auto'>Enjoy a comfortable stay in our modern guest house featuring well-furnished rooms, premium bedding, attached bathrooms, flat-screen TVs, tea/coffee facilities, and professional hospitality. Perfect for business travelers, families, tourists, and short-term stays. Experience cleanliness, comfort, and value in a peaceful environment.</p>
+    </div>
+
+    <!-- Availability Widget -->
+    <div class="mb-16">
+        {% include 'main/components/availability_widget.html' %}
+    </div>
+
+    {% if categories %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+        {% for category in categories %}
+        <div class="group bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-colors duration-300">
+            <div class="aspect-w-16 aspect-h-10 overflow-hidden relative">
+                <img src="{{ url_for('static', filename=category.cover_image) if category.cover_image else url_for('static', filename='images/photo_3.jpeg') }}" alt="{{ category.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                <div class="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-60"></div>
+                <div class="absolute bottom-4 left-6">
+                    <span class="bg-primary text-primary-foreground px-3 py-1 text-xs uppercase tracking-widest rounded-sm">Sleeps {{ category.capacity }}</span>
+                </div>
+            </div>
+            <div class="p-8">
+                <h2 class="text-2xl font-serif text-foreground mb-3 group-hover:text-primary transition-colors">{{ category.name }}</h2>
+                <p class="text-muted-foreground text-sm leading-relaxed mb-6">{{ category.description }}</p>
+                
+                {% if category.amenities %}
+                <div class="flex flex-wrap gap-4 mb-8">
+                    {% for amenity in category.amenities %}
+                    <span class="text-xs text-muted-foreground flex items-center gap-1.5"><svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>{{ amenity.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <button @click="window.dispatchEvent(new CustomEvent('open-booking-modal', { detail: { accommodationId: {{ category.id }} } }))" class="inline-block border border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2.5 text-sm tracking-widest uppercase transition-all duration-300 w-full text-center rounded-sm">
+                    Book Now
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-24">
+        <p class="text-xl text-muted-foreground">We are currently preparing our accommodations. Please check back soon.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Content Management | Admin{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <h1 class="text-2xl font-semibold text-foreground">Content Management</h1>
+</div>
+
+<p class="text-muted-foreground mb-8">Manage the textual and informational content across the website.</p>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Testimonials -->
+    <a href="{{ url_for('admin.testimonials') }}" class="group block bg-card rounded-lg border border-border p-6 hover:border-primary/50 transition-colors">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-medium text-foreground group-hover:text-primary transition-colors">Testimonials</h2>
+            <svg class="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+            </svg>
+        </div>
+        <p class="text-sm text-muted-foreground">Manage guest reviews and testimonials displayed on the homepage.</p>
+    </a>
+
+
+</div>
+{% endblock %}

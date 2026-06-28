@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}About | Shrine{% endblock %}
+{% block content %}
+<div class='container mx-auto px-6 py-32 lg:px-12'>
+    <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-16">
+            <span class="text-primary tracking-[0.3em] text-sm md:text-base uppercase mb-4 block font-medium">About Our Property</span>
+            <h1 class='text-4xl md:text-6xl font-serif text-foreground mb-6'>A Modern Guest House</h1>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-24">
+            <div>
+                <img src="{{ url_for('static', filename='images/about_photo.jpeg') }}" alt="Shrine Homestay Property" class="w-full h-full object-cover rounded-lg shadow-2xl">
+            </div>
+            <div>
+                <h2 class="text-2xl font-serif text-foreground mb-6">Welcome to Comfort</h2>
+                <p class="text-muted-foreground leading-relaxed mb-6">
+                    Welcome to a comfortable and modern stay designed for travelers who value cleanliness, convenience, and peace of mind.
+                </p>
+                <p class="text-muted-foreground leading-relaxed mb-6">
+                    Our guest house offers thoughtfully designed rooms with contemporary interiors, comfortable bedding, modern furnishings, and essential amenities to ensure a relaxing stay. Whether you are traveling for business, leisure, family visits, or a spiritual journey, we provide a clean, secure, and welcoming environment.
+                </p>
+                <p class="text-muted-foreground leading-relaxed mb-6">
+                    Each room features a comfortable bed with premium linens, flat-screen television, dressing mirror, workspace, tea/coffee-making facilities, complimentary drinking water, and attached modern bathrooms. The interiors are designed with elegant wood finishes and sophisticated décor, creating a warm and relaxing atmosphere.
+                </p>
+                <p class="text-muted-foreground leading-relaxed">
+                    Guests can enjoy bright, well-maintained corridors, professional reception assistance, daily housekeeping, and a peaceful environment suitable for both short and extended stays. Our commitment to cleanliness, guest comfort, and personalized hospitality makes us an excellent choice for travelers seeking quality accommodation at an affordable price.
+                </p>
+            </div>
+        </div>
+        
+        <div class="mb-24 pt-16 border-t border-border">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-serif text-foreground mb-4">What Makes Us Stand Out</h2>
+                <p class="text-muted-foreground">The details that make your stay exceptional</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div class="flex items-start gap-4">
+                    <span class="text-primary font-serif text-xl">01.</span>
+                    <span class="text-foreground/80 mt-1">Modern room design with feature wall paneling behind the TV.</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-primary font-serif text-xl">02.</span>
+                    <span class="text-foreground/80 mt-1">Clean and bright appearance that guests immediately notice.</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-primary font-serif text-xl">03.</span>
+                    <span class="text-foreground/80 mt-1">Large bathroom with premium-looking marble finish.</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-primary font-serif text-xl">04.</span>
+                    <span class="text-foreground/80 mt-1">Professional reception area that creates trust.</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-primary font-serif text-xl">05.</span>
+                    <span class="text-foreground/80 mt-1">Good lighting throughout the property.</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-primary font-serif text-xl">06.</span>
+                    <span class="text-foreground/80 mt-1">Minimalist luxury feel despite being a guest house rather than a hotel.</span>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="text-primary font-serif text-xl">07.</span>
+                    <span class="text-foreground/80 mt-1">Tea kettle and in-room amenities that add value.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-16 border-t border-border">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-serif text-foreground mb-4">Explore Jammu</h2>
+                <p class="text-muted-foreground max-w-2xl mx-auto">
+                    Jammu is known as the City of Temples, and many popular attractions are easily accessible from our property.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                <div class="bg-card border border-border p-6 rounded-sm">
+                    <h3 class="font-serif text-lg text-primary mb-2">Raghunath Temple</h3>
+                    <p class="text-sm text-muted-foreground leading-relaxed">One of North India's most important temple complexes dedicated to Lord Rama.</p>
+                </div>
+                <div class="bg-card border border-border p-6 rounded-sm">
+                    <h3 class="font-serif text-lg text-primary mb-2">Bahu Fort</h3>
+                    <p class="text-sm text-muted-foreground leading-relaxed">A historic fort overlooking the Tawi River and home to the revered Bawe Wali Mata Temple.</p>
+                </div>
+                <div class="bg-card border border-border p-6 rounded-sm">
+                    <h3 class="font-serif text-lg text-primary mb-2">Bagh-e-Bahu</h3>
+                    <p class="text-sm text-muted-foreground leading-relaxed">Beautiful terraced gardens offering scenic views of Jammu city.</p>
+                </div>
+                <div class="bg-card border border-border p-6 rounded-sm">
+                    <h3 class="font-serif text-lg text-primary mb-2">Ranbireshwar Temple</h3>
+                    <p class="text-sm text-muted-foreground leading-relaxed">A prominent and historic temple dedicated to Lord Shiva.</p>
+                </div>
+                <div class="bg-card border border-border p-6 rounded-sm">
+                    <h3 class="font-serif text-lg text-primary mb-2">Mubarak Mandi Palace</h3>
+                    <p class="text-sm text-muted-foreground leading-relaxed">The majestic former palace of the Maharaja of Jammu and Kashmir.</p>
+                </div>
+                <div class="bg-card border border-border p-6 rounded-sm">
+                    <h3 class="font-serif text-lg text-primary mb-2">Amar Mahal & Peer Kho</h3>
+                    <p class="text-sm text-muted-foreground leading-relaxed">The grand Amar Mahal Palace Museum and the ancient Peer Kho Cave Temple.</p>
+                </div>
+            </div>
+            
+            <div class="bg-primary/5 border border-primary/20 p-8 text-center rounded-sm max-w-3xl mx-auto">
+                <p class="text-foreground/80 leading-relaxed">
+                    Many visitors also use Jammu as a gateway to the famous <span class="font-semibold text-primary">Vaishno Devi Shrine</span>. Community travel recommendations frequently include Raghunath Temple, Bahu Fort, Amar Mahal, and Mubarak Mandi among the top places to explore in Jammu.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

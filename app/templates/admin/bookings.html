@@ -1,0 +1,409 @@
+{% extends "admin/layout.html" %}
+
+{% block content %}
+<div class="mb-8 flex flex-col md:flex-row justify-between md:items-center gap-4" x-data="{ showManualForm: false }">
+    <h1 class="text-2xl font-semibold text-foreground">Bookings & Enquiries</h1>
+    <div class="flex items-center gap-3">
+        <a href="{{ url_for('admin.export_bookings') }}" class="border border-border hover:bg-muted text-foreground px-4 py-2 rounded-sm tracking-wide transition-colors uppercase font-medium text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            Export CSV
+        </a>
+        <button @click="showManualForm = !showManualForm" class="bg-primary text-primary-foreground px-4 py-2 rounded-sm tracking-wide hover:bg-primary/90 transition-colors uppercase font-medium text-sm">
+            + Manual Booking
+        </button>
+    </div>
+
+    <!-- Manual Booking Form Dropdown -->
+    <div x-show="showManualForm" x-transition class="absolute top-24 right-6 w-full max-w-md bg-card border border-border rounded-lg shadow-2xl p-6 z-50">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-medium text-foreground">Add Manual Booking</h2>
+            <button @click="showManualForm = false" class="text-muted-foreground hover:text-foreground">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('admin.bookings') }}" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="ADD_MANUAL">
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-muted-foreground mb-1">Check In</label>
+                    <input type="date" name="check_in" required class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-muted-foreground mb-1">Check Out</label>
+                    <input type="date" name="check_out" required class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm">
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Guest Name</label>
+                <input type="text" name="full_name" required class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-muted-foreground mb-1">Email</label>
+                    <input type="email" name="email" required class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-muted-foreground mb-1">Phone</label>
+                    <input type="text" name="phone_number" required class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-muted-foreground mb-1">Rooms</label>
+                    <input type="number" name="rooms" min="1" value="1" required class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-muted-foreground mb-1">Guests</label>
+                    <input type="number" name="guests" min="1" value="1" required class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm">
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Internal Notes</label>
+                <textarea name="special_requests" rows="2" class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm"></textarea>
+            </div>
+            
+            <button type="submit" class="w-full bg-primary text-primary-foreground py-2 rounded-sm tracking-wide hover:bg-primary/90 transition-colors uppercase font-medium text-sm">
+                Create Booking
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="bg-card p-4 rounded-lg border border-border mb-8 shadow-sm">
+    <form method="GET" action="{{ url_for('admin.bookings') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+        <div class="md:col-span-2">
+            <label class="block text-xs font-medium text-muted-foreground mb-1">Search (Name, Ref, Email, Phone)</label>
+            <input type="text" name="search" value="{{ search_query or '' }}" placeholder="Search bookings..." class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm">
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-muted-foreground mb-1">Status Filter</label>
+            <select name="status" class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm">
+                <option value="">All Statuses</option>
+                <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                <option value="ACCEPTED" {% if status_filter == 'ACCEPTED' %}selected{% endif %}>Accepted</option>
+                <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                <option value="CONFIRMED" {% if status_filter == 'CONFIRMED' %}selected{% endif %}>Confirmed</option>
+                <option value="COMPLETED" {% if status_filter == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                <option value="CANCELLED" {% if status_filter == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-muted-foreground mb-1">Check-in From</label>
+            <input type="date" name="start_date" value="{{ start_date or '' }}" class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm">
+        </div>
+        <div>
+            <div class="flex gap-2">
+                <div class="flex-1">
+                    <label class="block text-xs font-medium text-muted-foreground mb-1">Check-in To</label>
+                    <input type="date" name="end_date" value="{{ end_date or '' }}" class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="bg-muted hover:bg-muted/80 border border-border text-foreground px-4 py-2 rounded-sm text-sm transition-colors h-[38px]">
+                        Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div x-data="{ 
+    activeTab: 'enquiries',
+    showModal: false,
+    selectedDetails: null,
+    
+    openDetails(dataStr) {
+        this.selectedDetails = JSON.parse(dataStr);
+        this.showModal = true;
+    }
+}">
+    <!-- Tabs -->
+    <div class="flex border-b border-border mb-6">
+        <button @click="activeTab = 'enquiries'" 
+                :class="{'border-primary text-primary': activeTab === 'enquiries', 'border-transparent text-muted-foreground hover:text-foreground': activeTab !== 'enquiries'}"
+                class="px-6 py-3 border-b-2 font-medium text-sm transition-colors focus:outline-none">
+            Enquiries
+        </button>
+        <button @click="activeTab = 'confirmed'" 
+                :class="{'border-primary text-primary': activeTab === 'confirmed', 'border-transparent text-muted-foreground hover:text-foreground': activeTab !== 'confirmed'}"
+                class="px-6 py-3 border-b-2 font-medium text-sm transition-colors focus:outline-none">
+            Confirmed Bookings
+        </button>
+    </div>
+
+    <!-- Enquiries Tab -->
+    <div x-show="activeTab === 'enquiries'" x-transition.opacity>
+        <div class="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-muted text-muted-foreground text-xs uppercase tracking-wider">
+                            <th class="p-4 font-medium">Reference</th>
+                            <th class="p-4 font-medium">Guest</th>
+                            <th class="p-4 font-medium">Dates</th>
+                            <th class="p-4 font-medium">Status</th>
+                            <th class="p-4 font-medium text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border text-sm">
+                        {% for enq in enquiries %}
+                        <tr class="hover:bg-muted/50 transition-colors cursor-pointer" 
+                            @click="openDetails('{{ {'type': 'enquiry', 'id': enq.id, 'ref': enq.reference_number, 'name': enq.full_name, 'email': enq.email, 'phone': enq.phone_number, 'rooms': enq.number_of_rooms, 'guests': enq.number_of_guests, 'check_in': enq.check_in_date.strftime('%Y-%m-%d'), 'check_out': enq.check_out_date.strftime('%Y-%m-%d'), 'status': enq.status, 'requests': enq.special_requests, 'created': enq.created_at.strftime('%Y-%m-%d %H:%M:%S'), 'available_rooms': enq.available_rooms if enq.status == 'PENDING' else 0, 'room_type': enq.accommodation.name if enq.accommodation else 'Standard Room', 'package': enq.package.name if enq.package else 'None', 'total_price': enq.total_price, 'breakdown': enq.price_breakdown | fromjson if enq.price_breakdown else none } | tojson | forceescape }}' )">
+                            <td class="p-4 whitespace-nowrap text-foreground font-medium">{{ enq.reference_number }}</td>
+                            <td class="p-4">
+                                <div class="font-medium text-foreground">{{ enq.full_name }}</div>
+                                <div class="text-xs text-muted-foreground">{{ enq.email }}</div>
+                            </td>
+                            <td class="p-4 whitespace-nowrap">
+                                <div class="text-foreground">{{ enq.check_in_date.strftime('%b %d') }} - {{ enq.check_out_date.strftime('%b %d, %Y') }}</div>
+                                <div class="text-xs text-muted-foreground">{{ enq.number_of_rooms }} Room(s), {{ enq.number_of_guests }} Guest(s)</div>
+                            </td>
+                            <td class="p-4">
+                                <span class="px-2 py-1 text-xs rounded font-medium 
+                                    {% if enq.status == 'PENDING' %}bg-yellow-900/30 text-yellow-500
+                                    {% elif enq.status == 'ACCEPTED' %}bg-green-900/30 text-green-500
+                                    {% else %}bg-red-900/30 text-red-500{% endif %}">
+                                    {{ enq.status }}
+                                </span>
+                            </td>
+                            <td class="p-4 text-right" @click.stop>
+                                {% if enq.status == 'PENDING' %}
+                                <form method="POST" action="{{ url_for('admin.bookings') }}" class="inline-block mr-2" onsubmit="return confirm('Accept this enquiry?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="action" value="ACCEPTED">
+                                    <input type="hidden" name="enquiry_id" value="{{ enq.id }}">
+                                    <button type="submit" class="text-green-500 hover:text-green-400 text-xs uppercase tracking-wider font-medium">Accept</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.bookings') }}" class="inline-block" onsubmit="return confirm('Reject this enquiry?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="action" value="REJECTED">
+                                    <input type="hidden" name="enquiry_id" value="{{ enq.id }}">
+                                    <button type="submit" class="text-red-500 hover:text-red-400 text-xs uppercase tracking-wider font-medium">Reject</button>
+                                </form>
+                                {% elif enq.status == 'ACCEPTED' %}
+                                <form method="POST" action="{{ url_for('admin.bookings') }}" class="inline-block" onsubmit="return confirm('Cancel this accepted booking?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="action" value="CANCEL_ENQUIRY">
+                                    <input type="hidden" name="enquiry_id" value="{{ enq.id }}">
+                                    <button type="submit" class="text-red-500 hover:text-red-400 text-xs uppercase tracking-wider font-medium">Cancel</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="p-8 text-center text-muted-foreground">
+                                No enquiries found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmed Bookings Tab -->
+    <div x-show="activeTab === 'confirmed'" x-transition.opacity style="display: none;">
+        <div class="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-muted text-muted-foreground text-xs uppercase tracking-wider">
+                            <th class="p-4 font-medium">Reference</th>
+                            <th class="p-4 font-medium">Guest</th>
+                            <th class="p-4 font-medium">Dates</th>
+                            <th class="p-4 font-medium">Status</th>
+                            <th class="p-4 font-medium text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border text-sm">
+                        {% for booking in confirmed_bookings %}
+                        <tr class="hover:bg-muted/50 transition-colors cursor-pointer"
+                            @click="openDetails('{{ {'type': 'booking', 'id': booking.id, 'ref': booking.reference_number, 'name': booking.full_name, 'email': booking.email, 'phone': booking.phone_number, 'rooms': booking.number_of_rooms, 'guests': booking.number_of_guests, 'check_in': booking.check_in_date.strftime('%Y-%m-%d'), 'check_out': booking.check_out_date.strftime('%Y-%m-%d'), 'status': booking.status, 'requests': booking.special_requests, 'notes': booking.notes, 'total_price': booking.total_price, 'created': booking.created_at.strftime('%Y-%m-%d %H:%M:%S'), 'room_type': booking.accommodation.name if booking.accommodation else 'Standard Room', 'package': booking.package.name if booking.package else 'None', 'breakdown': booking.price_breakdown | fromjson if booking.price_breakdown else none } | tojson | forceescape }}' )">
+                            <td class="p-4 whitespace-nowrap text-foreground font-medium">{{ booking.reference_number }}</td>
+                            <td class="p-4">
+                                <div class="font-medium text-foreground">{{ booking.full_name }}</div>
+                                <div class="text-xs text-muted-foreground">{{ booking.email }}</div>
+                            </td>
+                            <td class="p-4 whitespace-nowrap">
+                                <div class="text-foreground">{{ booking.check_in_date.strftime('%b %d') }} - {{ booking.check_out_date.strftime('%b %d, %Y') }}</div>
+                                <div class="text-xs text-muted-foreground">{{ booking.number_of_rooms }} Room(s), {{ booking.number_of_guests }} Guest(s)</div>
+                            </td>
+                            <td class="p-4">
+                                <span class="px-2 py-1 text-xs rounded font-medium 
+                                    {% if booking.status == 'CONFIRMED' %}bg-blue-900/30 text-blue-500
+                                    {% elif booking.status == 'COMPLETED' %}bg-green-900/30 text-green-500
+                                    {% else %}bg-red-900/30 text-red-500{% endif %}">
+                                    {{ booking.status }}
+                                </span>
+                            </td>
+                            <td class="p-4 text-right" @click.stop>
+                                {% if booking.status == 'CONFIRMED' %}
+                                <form method="POST" action="{{ url_for('admin.bookings') }}" class="inline-block mr-2" onsubmit="return confirm('Mark as Completed?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="action" value="COMPLETE">
+                                    <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                    <button type="submit" class="text-green-500 hover:text-green-400 text-xs uppercase tracking-wider font-medium">Complete</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.bookings') }}" class="inline-block" onsubmit="return confirm('Cancel this booking?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="action" value="CANCEL">
+                                    <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                    <button type="submit" class="text-red-500 hover:text-red-400 text-xs uppercase tracking-wider font-medium">Cancel</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="p-8 text-center text-muted-foreground">
+                                No bookings found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Details Modal / Slide-over -->
+    <div x-show="showModal" class="fixed inset-0 z-50 overflow-hidden" style="display: none;">
+        <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" @click="showModal = false" x-show="showModal" x-transition.opacity></div>
+        
+        <div class="fixed inset-y-0 right-0 max-w-md w-full bg-card shadow-2xl border-l border-border transform transition-transform duration-300 ease-in-out"
+             x-show="showModal"
+             x-transition:enter="translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="translate-x-0"
+             x-transition:leave-end="translate-x-full">
+            
+            <div class="h-full flex flex-col" x-if="selectedDetails">
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-border flex justify-between items-center">
+                    <div>
+                        <span class="text-xs text-muted-foreground uppercase tracking-wider" x-text="selectedDetails.type + ' details'"></span>
+                        <h2 class="text-xl font-serif text-foreground mt-1" x-text="selectedDetails.ref"></h2>
+                    </div>
+                    <button @click="showModal = false" class="text-muted-foreground hover:text-foreground text-2xl">&times;</button>
+                </div>
+                
+                <!-- Content -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                    <!-- Status Badge -->
+                    <div class="flex justify-between items-center">
+                        <span class="px-3 py-1 text-xs rounded font-medium bg-muted text-foreground" x-text="'Status: ' + selectedDetails.status"></span>
+                        <span class="text-xs text-muted-foreground" x-text="'Submitted: ' + selectedDetails.created"></span>
+                    </div>
+
+                    <!-- Guest Details -->
+                    <div>
+                        <h3 class="text-sm font-medium text-foreground mb-3 border-b border-border pb-1">Guest Information</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span class="text-muted-foreground">Name:</span> <span class="text-foreground" x-text="selectedDetails.name"></span></div>
+                            <div class="flex justify-between"><span class="text-muted-foreground">Email:</span> <span class="text-foreground" x-text="selectedDetails.email"></span></div>
+                            <div class="flex justify-between"><span class="text-muted-foreground">Phone:</span> <span class="text-foreground" x-text="selectedDetails.phone"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Stay Details -->
+                    <div>
+                        <h3 class="text-sm font-medium text-foreground mb-3 border-b border-border pb-1">Stay Details</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span class="text-muted-foreground">Check-in:</span> <span class="text-foreground font-medium" x-text="selectedDetails.check_in"></span></div>
+                            <div class="flex justify-between"><span class="text-muted-foreground">Check-out:</span> <span class="text-foreground font-medium" x-text="selectedDetails.check_out"></span></div>
+                            <div class="flex justify-between"><span class="text-muted-foreground">Rooms:</span> <span class="text-foreground" x-text="selectedDetails.rooms"></span></div>
+                            <div class="flex justify-between"><span class="text-muted-foreground">Room Type:</span> <span class="text-foreground font-medium" x-text="selectedDetails.room_type"></span></div>
+                            <div class="flex justify-between"><span class="text-muted-foreground">Guests:</span> <span class="text-foreground" x-text="selectedDetails.guests"></span></div>
+                            <div class="flex justify-between"><span class="text-muted-foreground">Add-on Package:</span> <span class="text-foreground" x-text="selectedDetails.package"></span></div>
+                            <template x-if="selectedDetails.total_price">
+                                <div class="mt-3 pt-3 border-t border-border/50 space-y-1">
+                                    <template x-if="selectedDetails.breakdown && selectedDetails.breakdown.rooms && selectedDetails.breakdown.rooms.length > 0">
+                                        <div class="space-y-1 mb-2">
+                                            <template x-for="room in selectedDetails.breakdown.rooms" :key="room.room_number">
+                                                <div class="flex justify-between text-xs">
+                                                    <span class="text-muted-foreground" x-text="'Room ' + room.room_number + ' (' + room.guests_in_room + ' guest' + (room.guests_in_room !== 1 ? 's' : '') + ') × ' + room.nights + 'n'"></span>
+                                                    <span class="text-foreground" x-text="'₹' + room.room_total.toLocaleString('en-IN')"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="selectedDetails.breakdown && selectedDetails.breakdown.meal_charges > 0">
+                                                <div class="flex justify-between text-xs">
+                                                    <span class="text-muted-foreground" x-text="(selectedDetails.breakdown.package_name || 'Meals') + ' (add-on)'"></span>
+                                                    <span class="text-foreground" x-text="'₹' + selectedDetails.breakdown.meal_charges.toLocaleString('en-IN')"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <div class="flex justify-between pt-1">
+                                        <span class="text-muted-foreground font-medium">Total Price:</span>
+                                        <span class="text-primary font-bold text-base" x-text="'₹' + Number(selectedDetails.total_price).toLocaleString('en-IN')"></span>
+                                    </div>
+                                </div>
+                            </template>
+                            <template x-if="selectedDetails.type === 'enquiry' && selectedDetails.status === 'PENDING'">
+                                <div class="flex justify-between mt-2 pt-2 border-t border-border">
+                                    <span class="text-muted-foreground">Rooms Available:</span> 
+                                    <span class="font-bold" :class="selectedDetails.available_rooms > 0 ? 'text-green-500' : 'text-red-500'" x-text="selectedDetails.available_rooms"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Requests & Notes -->
+                    <div>
+                        <h3 class="text-sm font-medium text-foreground mb-3 border-b border-border pb-1">Notes & Requests</h3>
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <span class="block text-muted-foreground mb-1">Special Requests:</span>
+                                <p class="text-foreground bg-muted/30 p-3 rounded" x-text="selectedDetails.requests || 'None'"></p>
+                            </div>
+                            <template x-if="selectedDetails.type === 'booking'">
+                                <div>
+                                    <span class="block text-muted-foreground mb-1">Internal Notes:</span>
+                                    <p class="text-foreground bg-muted/30 p-3 rounded" x-text="selectedDetails.notes || 'None'"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div>
+                        <h3 class="text-sm font-medium text-foreground mb-3 border-b border-border pb-1">Timeline</h3>
+                        <div class="relative border-l border-border ml-2 space-y-4 pb-4">
+                            <div class="relative pl-4">
+                                <div class="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-muted border-2 border-card"></div>
+                                <p class="text-sm text-foreground">Enquiry Submitted</p>
+                                <p class="text-xs text-muted-foreground" x-text="selectedDetails.created"></p>
+                            </div>
+                            <template x-if="selectedDetails.status !== 'PENDING' && selectedDetails.type === 'enquiry'">
+                                <div class="relative pl-4">
+                                    <div class="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-primary border-2 border-card"></div>
+                                    <p class="text-sm text-foreground" x-text="'Enquiry ' + selectedDetails.status"></p>
+                                </div>
+                            </template>
+                            <template x-if="selectedDetails.type === 'booking'">
+                                <div class="relative pl-4">
+                                    <div class="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-primary border-2 border-card"></div>
+                                    <p class="text-sm text-foreground">Booking Confirmed</p>
+                                </div>
+                            </template>
+                            <template x-if="selectedDetails.status === 'COMPLETED' || selectedDetails.status === 'CANCELLED'">
+                                <div class="relative pl-4">
+                                    <div class="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-primary border-2 border-card" :class="{'bg-red-500': selectedDetails.status === 'CANCELLED'}"></div>
+                                    <p class="text-sm text-foreground" x-text="'Booking ' + selectedDetails.status"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "admin/layout.html" %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <h1 class="text-2xl font-semibold text-foreground">Email Templates</h1>
+</div>
+
+<div class="grid grid-cols-1 gap-8">
+    {% for template in templates %}
+    <div class="bg-card rounded-lg border border-border overflow-hidden" x-data="{ editing: false }">
+        <div class="p-6 border-b border-border bg-muted/30 flex justify-between items-center">
+            <div>
+                <h2 class="text-lg font-medium text-foreground capitalize">{{ template.name.replace('_', ' ') }}</h2>
+                {% if template.description %}
+                <p class="text-sm text-muted-foreground mt-1">{{ template.description }}</p>
+                {% endif %}
+            </div>
+            <button @click="editing = !editing" class="text-primary hover:text-primary/80 text-sm uppercase tracking-wider font-medium">
+                <span x-show="!editing">Edit</span>
+                <span x-show="editing">Cancel</span>
+            </button>
+        </div>
+        
+        <!-- View Mode -->
+        <div class="p-6 space-y-4" x-show="!editing">
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Subject</label>
+                <div class="text-foreground bg-background p-3 rounded-sm border border-border/50">{{ template.subject }}</div>
+            </div>
+            <div>
+                <label class="block text-xs uppercase tracking-wider text-muted-foreground mb-1">Body</label>
+                <div class="text-foreground bg-background p-4 rounded-sm border border-border/50 whitespace-pre-wrap font-mono text-sm">{{ template.body }}</div>
+            </div>
+            <div class="text-xs text-muted-foreground mt-4">
+                Note: You can use Jinja syntax (e.g. {{ '{{ enquiry.full_name }}' }}, {{ '{{ booking.reference_number }}' }}).
+            </div>
+        </div>
+
+        <!-- Edit Mode -->
+        <div class="p-6 border-t border-border bg-background/50" x-show="editing" x-cloak>
+            <form method="POST" action="{{ url_for('admin.emails') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="template_id" value="{{ template.id }}">
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-muted-foreground mb-2">Subject</label>
+                        <input type="text" name="subject" value="{{ template.subject }}" required class="w-full bg-background border border-border rounded-sm px-4 py-2 text-foreground focus:outline-none focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-muted-foreground mb-2">Body</label>
+                        <textarea name="body" rows="10" required class="w-full bg-background border border-border rounded-sm px-4 py-3 text-foreground focus:outline-none focus:border-primary font-mono text-sm">{{ template.body }}</textarea>
+                    </div>
+                    
+                    <div class="flex justify-end gap-3 pt-4 border-t border-border/50">
+                        <button type="button" @click="editing = false" class="px-4 py-2 text-sm uppercase tracking-wider font-medium text-muted-foreground hover:text-foreground transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-primary text-primary-foreground px-6 py-2 rounded-sm text-sm uppercase tracking-wider font-medium hover:bg-primary/90 transition-colors">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-card p-8 rounded-lg border border-border text-center">
+        <p class="text-muted-foreground">No email templates found in the database.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'admin/layout.html' %}
+{% block title %}Contact Inquiries | Admin{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-semibold text-foreground">Contact Inquiries</h1>
+    <p class="text-sm text-muted-foreground mt-1">Manage messages sent through the website contact form.</p>
+</div>
+
+<div class="bg-card rounded-lg border border-border overflow-hidden">
+    <table class="w-full text-left border-collapse">
+        <thead>
+            <tr class="bg-muted/50 border-b border-border">
+                <th class="py-3 px-4 text-sm font-medium text-muted-foreground">Date</th>
+                <th class="py-3 px-4 text-sm font-medium text-muted-foreground">Name</th>
+                <th class="py-3 px-4 text-sm font-medium text-muted-foreground">Email</th>
+                <th class="py-3 px-4 text-sm font-medium text-muted-foreground w-1/3">Message</th>
+                <th class="py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
+                <th class="py-3 px-4 text-sm font-medium text-muted-foreground text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+            {% for inquiry in inquiries %}
+            <tr class="hover:bg-muted/30 transition-colors {{ 'bg-primary/5' if inquiry.status == 'UNREAD' else '' }}">
+                <td class="py-4 px-4 whitespace-nowrap">
+                    <div class="text-sm text-foreground">{{ inquiry.created_at.strftime('%Y-%m-%d') }}</div>
+                    <div class="text-xs text-muted-foreground">{{ inquiry.created_at.strftime('%H:%M') }}</div>
+                </td>
+                <td class="py-4 px-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-foreground">{{ inquiry.first_name }} {{ inquiry.last_name }}</div>
+                </td>
+                <td class="py-4 px-4">
+                    <a href="mailto:{{ inquiry.email }}" class="text-sm text-primary hover:underline">{{ inquiry.email }}</a>
+                </td>
+                <td class="py-4 px-4">
+                    <div class="text-sm text-foreground line-clamp-2" title="{{ inquiry.message }}">{{ inquiry.message }}</div>
+                </td>
+                <td class="py-4 px-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ 'bg-yellow-100 text-yellow-800' if inquiry.status == 'UNREAD' else 'bg-gray-100 text-gray-800' }}">
+                        {{ inquiry.status }}
+                    </span>
+                </td>
+                <td class="py-4 px-4 text-right whitespace-nowrap">
+                    <div class="flex justify-end space-x-2">
+                        {% if inquiry.status == 'UNREAD' %}
+                        <form action="{{ url_for('admin.inquiries') }}" method="POST" class="inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="mark_read">
+                            <input type="hidden" name="inquiry_id" value="{{ inquiry.id }}">
+                            <button type="submit" class="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80">
+                                Mark Read
+                            </button>
+                        </form>
+                        {% endif %}
+                        <form action="{{ url_for('admin.inquiries') }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this inquiry?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="inquiry_id" value="{{ inquiry.id }}">
+                            <button type="submit" class="text-xs px-2 py-1 bg-destructive/10 text-destructive rounded hover:bg-destructive/20">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="py-8 text-center text-muted-foreground text-sm">No contact inquiries found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

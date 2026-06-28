@@ -1,0 +1,180 @@
+{% extends "admin/layout.html" %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-semibold text-foreground">Dashboard</h1>
+    <p class="text-muted-foreground text-sm mt-1">Overview of your property's performance.</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+    <!-- Pending Enquiries -->
+    <div class="bg-card p-6 rounded-lg border border-border shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-medium text-muted-foreground uppercase tracking-wider">Pending</h3>
+            <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <p class="text-3xl font-serif text-foreground">{{ stats.new_enquiries }}</p>
+    </div>
+
+    <!-- Confirmed Bookings -->
+    <div class="bg-card p-6 rounded-lg border border-border shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-medium text-muted-foreground uppercase tracking-wider">Bookings</h3>
+            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <p class="text-3xl font-serif text-foreground">{{ stats.total_bookings }}</p>
+    </div>
+
+    <!-- Check-ins Today -->
+    <div class="bg-card p-6 rounded-lg border border-border shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-medium text-muted-foreground uppercase tracking-wider">Check-ins</h3>
+            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+        </div>
+        <p class="text-3xl font-serif text-foreground">{{ stats.today_checkins }}</p>
+    </div>
+
+    <!-- Check-outs Today -->
+    <div class="bg-card p-6 rounded-lg border border-border shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-medium text-muted-foreground uppercase tracking-wider">Check-outs</h3>
+            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        </div>
+        <p class="text-3xl font-serif text-foreground">{{ stats.today_checkouts }}</p>
+    </div>
+
+    <!-- Occupancy -->
+    <div class="bg-card p-6 rounded-lg border border-border shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-medium text-muted-foreground uppercase tracking-wider">Occupancy</h3>
+            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        </div>
+        <p class="text-3xl font-serif text-foreground">{{ stats.occupancy_rate }}</p>
+    </div>
+
+    <!-- Revenue -->
+    <div class="bg-card p-6 rounded-lg border border-border shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-medium text-muted-foreground uppercase tracking-wider">Revenue</h3>
+            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <p class="text-3xl font-serif text-foreground">{{ stats.revenue }}</p>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+        <h2 class="text-lg font-medium text-foreground mb-6">Booking Trends</h2>
+        <canvas id="bookingsChart" height="200"></canvas>
+    </div>
+    <div class="bg-card p-6 rounded-lg border border-border shadow-sm">
+        <h2 class="text-lg font-medium text-foreground mb-6">Occupancy Trends (%)</h2>
+        <canvas id="occupancyChart" height="200"></canvas>
+    </div>
+</div>
+
+<!-- Recent Enquiries -->
+<div class="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+    <div class="p-6 border-b border-border flex justify-between items-center">
+        <h2 class="text-lg font-medium text-foreground">Recent Booking Enquiries</h2>
+        <a href="{{ url_for('admin.bookings') }}" class="text-sm text-primary hover:underline">View All</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-muted text-muted-foreground text-xs uppercase tracking-wider">
+                    <th class="p-4 font-medium">Guest Name</th>
+                    <th class="p-4 font-medium">Dates</th>
+                    <th class="p-4 font-medium">Guests</th>
+                    <th class="p-4 font-medium">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-border text-sm">
+                {% for enquiry in recent_enquiries %}
+                <tr class="hover:bg-muted/50 transition-colors">
+                    <td class="p-4 text-foreground font-medium">{{ enquiry.full_name }}</td>
+                    <td class="p-4 text-muted-foreground">{{ enquiry.check_in_date.strftime('%b %d') }} - {{ enquiry.check_out_date.strftime('%b %d') }}<br><span class="text-xs">{{ enquiry.accommodation.name if enquiry.accommodation else 'Standard Room' }}</span></td>
+                    <td class="p-4 text-muted-foreground">{{ enquiry.number_of_guests }}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 text-xs rounded font-medium 
+                            {% if enquiry.status == 'PENDING' %}bg-yellow-900/30 text-yellow-500
+                            {% elif enquiry.status == 'ACCEPTED' %}bg-green-900/30 text-green-500
+                            {% else %}bg-red-900/30 text-red-500{% endif %}">
+                            {{ enquiry.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="p-8 text-center text-muted-foreground">
+                        No recent enquiries.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Shared chart options for dark mode aesthetics
+    const commonOptions = {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                ticks: { color: '#a3a3a3' }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { color: '#a3a3a3' }
+            }
+        }
+    };
+
+    // Bookings Chart
+    const bCtx = document.getElementById('bookingsChart').getContext('2d');
+    new Chart(bCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_data.labels | tojson }},
+            datasets: [{
+                label: 'Bookings',
+                data: {{ chart_data.bookings | tojson }},
+                backgroundColor: '#D4AF37',
+                borderRadius: 4
+            }]
+        },
+        options: commonOptions
+    });
+
+    // Occupancy Chart
+    const oCtx = document.getElementById('occupancyChart').getContext('2d');
+    new Chart(oCtx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_data.labels | tojson }},
+            datasets: [{
+                label: 'Occupancy %',
+                data: {{ chart_data.occupancy | tojson }},
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: commonOptions
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %}

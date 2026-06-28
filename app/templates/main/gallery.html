@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Gallery | Shrine{% endblock %}
+{% block content %}
+<div class='container mx-auto px-6 py-32 lg:px-12'>
+    <div class="text-center mb-16">
+        <span class="text-primary tracking-[0.3em] text-sm md:text-base uppercase mb-4 block font-medium">Visual Journey</span>
+        <h1 class='text-4xl md:text-6xl font-serif text-foreground mb-6'>Gallery</h1>
+    </div>
+
+    <!-- Masonry Layout -->
+    <div class="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+        {% if images %}
+            {% for image in images %}
+            <div class="break-inside-avoid overflow-hidden rounded-lg relative group">
+                <img src="{{ image.url }}" alt="{{ image.alt_text or 'Gallery Image' }}" class="w-full object-cover hover:scale-105 transition-transform duration-700">
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4 pointer-events-none">
+                    <span class="text-white text-sm tracking-wider uppercase">{{ image.category.name }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-span-full text-center text-muted-foreground py-12">
+                <p>More images coming soon.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

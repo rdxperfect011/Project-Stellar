@@ -1,0 +1,21 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="fixed top-20 right-8 z-[100] flex flex-col gap-2 w-80">
+            {% for category, message in messages %}
+                <div x-data="{ show: true }" 
+                     x-init="setTimeout(() => show = false, 5000)" 
+                     x-show="show" 
+                     x-transition.opacity.duration.500ms 
+                     class="p-4 rounded shadow-2xl flex justify-between items-start text-sm
+                     {% if category == 'error' %}
+                        bg-red-900 border-l-4 border-red-500 text-red-100
+                     {% else %}
+                        bg-card border-l-4 border-primary text-foreground
+                     {% endif %}">
+                    <span>{{ message }}</span>
+                    <button @click="show = false" class="ml-4 opacity-50 hover:opacity-100">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}

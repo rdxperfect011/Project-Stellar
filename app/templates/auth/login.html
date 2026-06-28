@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | Shrine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#0f0d0c',
+                        foreground: '#fafafa',
+                        primary: '#D4AF37',
+                        'primary-foreground': '#000000',
+                        muted: '#262626',
+                        'muted-foreground': '#a3a3a3',
+                        border: '#262626',
+                        card: '#171717',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-foreground min-h-screen flex items-center justify-center font-sans antialiased">
+    <div class="w-full max-w-md p-8 bg-card border border-border rounded-lg shadow-xl">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-serif text-primary mb-2">SHRINE</h1>
+            <p class="text-muted-foreground">Admin Portal</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-3 mb-6 rounded text-sm {% if category == 'error' %}bg-red-900/50 text-red-200 border border-red-800{% else %}bg-primary/20 text-primary border border-primary/30{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-6">
+            {{ form.csrf_token }}
+            <div>
+                <label for="email" class="block text-sm font-medium mb-2 text-muted-foreground">Email</label>
+                {{ form.email(class="w-full bg-background border border-border rounded px-4 py-2 focus:outline-none focus:border-primary text-foreground") }}
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium mb-2 text-muted-foreground">Password</label>
+                {{ form.password(class="w-full bg-background border border-border rounded px-4 py-2 focus:outline-none focus:border-primary text-foreground") }}
+            </div>
+            <div class="flex items-center">
+                {{ form.remember_me(class="mr-2 accent-primary") }}
+                <label for="remember_me" class="text-sm text-muted-foreground">Remember me</label>
+            </div>
+            {{ form.submit(class="w-full bg-primary text-primary-foreground font-medium py-3 rounded hover:bg-primary/90 transition-colors cursor-pointer") }}
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<footer class="bg-card pt-16 pb-8 border-t border-border">
+    <div class="container mx-auto px-6 lg:px-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+            <div class="md:col-span-1">
+                <a href="{{ url_for('main.index') }}" class="font-serif text-2xl tracking-widest text-primary block mb-6">SHRINE</a>
+                <p class="text-sm text-muted-foreground leading-relaxed">
+                    A sanctuary above the clouds. Redefining mountain homestays with timeless beauty and refined comfort.
+                </p>
+            </div>
+            <div>
+                <h4 class="font-serif text-lg mb-6 text-foreground">Explore</h4>
+                <ul class="space-y-3 text-sm text-muted-foreground">
+                    <li><a href="{{ url_for('main.accommodations') }}" class="hover:text-primary transition-colors">Accommodations</a></li>
+                    <li><a href="{{ url_for('main.gallery') }}" class="hover:text-primary transition-colors">Gallery</a></li>
+                    <li><a href="{{ url_for('main.about') }}" class="hover:text-primary transition-colors">About</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-serif text-lg mb-6 text-foreground">Contact</h4>
+                <ul class="space-y-3 text-sm text-muted-foreground">
+                    <li><a href="{{ url_for('main.contact') }}" class="hover:text-primary transition-colors">Enquiries</a></li>
+                    <li>hello@shrinehomestay.com</li>
+                    <li>+91 98765 43210</li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-muted-foreground">
+            <p>&copy; {{ moment().format('YYYY') if moment else '2024' }} Shrine Home Stay. All rights reserved.</p>
+            <div class="flex space-x-4 mt-4 md:mt-0">
+                <a href="#" class="hover:text-primary transition-colors">Privacy Policy</a>
+                <a href="#" class="hover:text-primary transition-colors">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+</footer>

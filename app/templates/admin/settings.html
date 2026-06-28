@@ -1,0 +1,85 @@
+{% extends 'admin/layout.html' %}
+{% block title %}Settings | Admin{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-semibold text-foreground">Website Settings</h1>
+    <p class="text-sm text-muted-foreground mt-1">Manage global site configuration and contact details.</p>
+</div>
+
+<form action="{{ url_for('admin.settings') }}" method="POST" class="space-y-8">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+    <div class="bg-card border border-border rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-border bg-muted/30">
+            <h2 class="text-lg font-medium text-foreground">General Info</h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">Site Title</label>
+                    <input type="text" name="setting_site_title" value="{{ settings.get('site_title', '') }}" class="w-full bg-background border border-input rounded-md px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                    <p class="text-xs text-muted-foreground mt-1">The main name of the website (e.g. Shrine Home Stay).</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">Site Description</label>
+                    <input type="text" name="setting_site_description" value="{{ settings.get('site_description', '') }}" class="w-full bg-background border border-input rounded-md px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                    <p class="text-xs text-muted-foreground mt-1">A short description used for SEO and metadata.</p>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-foreground mb-1">Total Rooms</label>
+                <input type="number" name="setting_total_rooms" value="{{ settings.get('total_rooms', '5') }}" class="w-full md:w-1/4 bg-background border border-input rounded-md px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                <p class="text-xs text-muted-foreground mt-1">The maximum number of rooms available for booking.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-card border border-border rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-border bg-muted/30">
+            <h2 class="text-lg font-medium text-foreground">Contact Details</h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">Contact Email</label>
+                    <input type="email" name="setting_contact_email" value="{{ settings.get('contact_email', '') }}" class="w-full bg-background border border-input rounded-md px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">Contact Phone</label>
+                    <input type="text" name="setting_contact_phone" value="{{ settings.get('contact_phone', '') }}" class="w-full bg-background border border-input rounded-md px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-foreground mb-1">Physical Address</label>
+                <textarea name="setting_contact_address" rows="3" class="w-full bg-background border border-input rounded-md px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary">{{ settings.get('contact_address', '') }}</textarea>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-card border border-border rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-border bg-muted/30">
+            <h2 class="text-lg font-medium text-foreground">Social Media</h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">Facebook URL</label>
+                    <input type="url" name="setting_facebook_url" value="{{ settings.get('facebook_url', '') }}" class="w-full bg-background border border-input rounded-md px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">Instagram URL</label>
+                    <input type="url" name="setting_instagram_url" value="{{ settings.get('instagram_url', '') }}" class="w-full bg-background border border-input rounded-md px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="flex justify-end">
+        <button type="submit" class="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:bg-primary/90 transition-colors shadow-sm">
+            Save All Settings
+        </button>
+    </div>
+</form>
+
+{% endblock %}

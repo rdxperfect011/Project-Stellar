@@ -9,7 +9,6 @@ from app import limiter
 auth = Blueprint('auth', __name__)
 
 @auth.route('/login', methods=['GET', 'POST'])
-@limiter.limit("5 per minute")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('admin.dashboard'))
@@ -33,6 +32,9 @@ def login():
         from flask import jsonify
         print("POST /auth/login CRASH:", traceback.format_exc(), flush=True)
         return jsonify({"error": str(e)}), 500
+        
+    from flask import jsonify
+    return jsonify({"error": "Unknown error"}), 500
 
 @auth.route('/logout')
 @login_required

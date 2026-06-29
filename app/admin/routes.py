@@ -34,53 +34,60 @@ def role_required(page_slug):
 
 @admin.context_processor
 def inject_notifications():
-    unread_notifications = AdminNotification.query.filter_by(is_read=False).order_by(AdminNotification.created_at.desc()).limit(10).all()
-    unread_count = len(unread_notifications)
+    try:
+        unread_notifications = AdminNotification.query.filter_by(is_read=False).order_by(AdminNotification.created_at.desc()).limit(10).all()
+        unread_count = len(unread_notifications)
+    except Exception as e:
+        print(f"[Admin API Error] inject_notifications: {e}")
+        unread_notifications = []
+        unread_count = 0
     return dict(unread_notifications=unread_notifications, unread_count=unread_count)
 
 @admin.route('/')
 @login_required
 @role_required('dashboard')
 def dashboard():
-    today = datetime.now().date()
-    start_of_month = today.replace(day=1)
-    
-    new_enquiries = BookingEnquiry.query.filter_by(status='PENDING').count()
-    total_bookings = Booking.query.filter(Booking.status != 'CANCELLED').count()
-    
-    today_checkins = Booking.query.filter(db.func.date(Booking.check_in_date) == today, Booking.status.in_(['CONFIRMED', 'CHECKED IN', 'COMPLETED'])).count()
-    today_checkouts = Booking.query.filter(db.func.date(Booking.check_out_date) == today, Booking.status.in_(['CONFIRMED', 'CHECKED IN', 'COMPLETED'])).count()
-    
-    # Revenue (this month)
-    monthly_bookings = Booking.query.filter(Booking.created_at >= start_of_month, Booking.status.in_(['CONFIRMED', 'COMPLETED'])).all()
-    revenue = sum([b.total_price for b in monthly_bookings if b.total_price])
-    
-    # Calculate occupancy for the next 30 days
-    # (Simplified calculation)
-    # Get capacity
-    capacity_setting = WebsiteSetting.query.filter_by(key='total_rooms').first()
-    total_capacity = int(capacity_setting.value) if capacity_setting else 5
-    
-    stats = {
-        'new_enquiries': new_enquiries,
-        'today_checkins': today_checkins,
-        'today_checkouts': today_checkouts,
-        'total_bookings': total_bookings,
-        'revenue': f"₹{revenue:,.2f}",
-        'occupancy_rate': f"{min(100, (total_bookings / (total_capacity * 30)) * 100):.1f}%" # Very basic approx
-    }
-    
-    recent_enquiries = BookingEnquiry.query.order_by(BookingEnquiry.created_at.desc()).limit(5).all()
-    
-    # Chart Data (Mockup for Monthly Trends)
-    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    chart_data = {
-        'labels': months[-6:], # Last 6 months
-        'bookings': [12, 19, 15, 25, 22, 30],
-        'occupancy': [40, 55, 45, 75, 65, 85]
-    }
-    
-    return render_template('admin/dashboard.html', stats=stats, recent_enquiries=recent_enquiries, chart_data=chart_data)
+    try:
+        today = datetime.now().date()
+        start_of_month = today.replace(day=1)
+        
+        new_enquiries = BookingEnquiry.query.filter_by(status='PENDING').count()
+        total_bookings = Booking.query.filter(Booking.status != 'CANCELLED').count()
+        
+        today_checkins = Booking.query.filter(db.func.date(Booking.check_in_date) == today, Booking.status.in_(['CONFIRMED', 'CHECKED IN', 'COMPLETED'])).count()
+        today_checkouts = Booking.query.filter(db.func.date(Booking.check_out_date) == today, Booking.status.in_(['CONFIRMED', 'CHECKED IN', 'COMPLETED'])).count()
+        
+        # Revenue (this month)
+        monthly_bookings = Booking.query.filter(Booking.created_at >= start_of_month, Booking.status.in_(['CONFIRMED', 'COMPLETED'])).all()
+        revenue = sum([b.total_price for b in monthly_bookings if b.total_price])
+        
+        # Calculate occupancy for the next 30 days
+        capacity_setting = WebsiteSetting.query.filter_by(key='total_rooms').first()
+        total_capacity = int(capacity_setting.value) if capacity_setting else 5
+        
+        stats = {
+            'new_enquiries': new_enquiries,
+            'today_checkins': today_checkins,
+            'today_checkouts': today_checkouts,
+            'total_bookings': total_bookings,
+            'revenue': f"₹{revenue:,.2f}",
+            'occupancy_rate': f"{min(100, (total_bookings / (total_capacity * 30)) * 100):.1f}%" # Very basic approx
+        }
+        
+        recent_enquiries = BookingEnquiry.query.order_by(BookingEnquiry.created_at.desc()).limit(5).all()
+        
+        # Chart Data (Mockup for Monthly Trends)
+        months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        chart_data = {
+            'labels': months[-6:], # Last 6 months
+            'bookings': [12, 19, 15, 25, 22, 30],
+            'occupancy': [40, 55, 45, 75, 65, 85]
+        }
+        
+        return render_template('admin/dashboard.html', stats=stats, recent_enquiries=recent_enquiries, chart_data=chart_data)
+    except Exception as e:
+        print(f"[Admin API Error] dashboard: {e}")
+        return jsonify({'error': 'Database error', 'detail': str(e)}), 500
 
 @admin.route('/bookings', methods=['GET', 'POST'])
 @login_required

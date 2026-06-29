@@ -2,7 +2,13 @@ import os
 from app import create_app, db
 import app.models
 
-app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+import traceback
+
+try:
+    app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+except Exception as e:
+    print("STARTUP ERROR:", traceback.format_exc())
+    raise
 
 if __name__ == '__main__':
     with app.app_context():

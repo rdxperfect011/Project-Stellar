@@ -8,3 +8,4 @@ Flask-Mail==0.10.0
 gunicorn==22.0.0
 python-dotenv==1.0.1
 pytest==8.2.1
+psycopg2-binary==2.9.9

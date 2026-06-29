@@ -5,7 +5,7 @@ All pricing is calculated exclusively by PricingEngine.
 No price arithmetic lives in this file.
 """
 from flask import Blueprint, request, jsonify, current_app
-from app import db, limiter
+from app import db
 from app.models.content import ContactInquiry
 from app.models.accommodation import AccommodationCategory, AccommodationPackage
 from app.services.booking_service import BookingService
@@ -28,7 +28,7 @@ def parse_date(date_str):
 # ---------------------------------------------------------------------------
 
 @api.route('/check-availability', methods=['POST'])
-@limiter.limit("10 per minute")
+
 def check_availability():
     """
     Returns: 'available', 'limited', or 'unavailable'.
@@ -76,7 +76,7 @@ def check_availability():
 # ---------------------------------------------------------------------------
 
 @api.route('/calculate-price', methods=['POST'])
-@limiter.limit("30 per minute")
+
 def calculate_price():
     """
     Calculate the full price breakdown for a set of booking parameters.
@@ -162,7 +162,7 @@ def get_accommodation_pricing():
 # ---------------------------------------------------------------------------
 
 @api.route('/booking-request', methods=['POST'])
-@limiter.limit("5 per minute")
+
 def booking_request():
     data = request.get_json()
     if not data:
@@ -193,7 +193,7 @@ def booking_request():
 # ---------------------------------------------------------------------------
 
 @api.route('/contact', methods=['POST'])
-@limiter.limit("5 per minute")
+
 def contact():
     data = request.get_json()
     if not data:

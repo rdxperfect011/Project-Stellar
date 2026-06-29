@@ -5,10 +5,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+
 from flask_mail import Mail
 from config import config
+from flask_compress import Compress
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -17,8 +17,9 @@ login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 login_manager.login_message_category = 'info'
 csrf = CSRFProtect()
-limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
+
 mail = Mail()
+compress = Compress()
 
 def create_app(config_name='default'):
     app = Flask(__name__)
@@ -34,8 +35,9 @@ def create_app(config_name='default'):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     csrf.init_app(app)
-    limiter.init_app(app)
+
     mail.init_app(app)
+    compress.init_app(app)
     
     # Ensure upload directory exists (handle read-only filesystem on Vercel)
     try:

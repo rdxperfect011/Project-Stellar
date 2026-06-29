@@ -12,7 +12,7 @@
         {% if images %}
             {% for image in images %}
             <div class="break-inside-avoid overflow-hidden rounded-lg relative group">
-                <img src="{{ image.url }}" alt="{{ image.alt_text or 'Gallery Image' }}" class="w-full object-cover hover:scale-105 transition-transform duration-700">
+                <img src="{{ image.url }}" alt="{{ image.alt_text or 'Gallery Image' }}" class="w-full object-cover hover:scale-105 transition-transform duration-700" loading="lazy">
                 <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4 pointer-events-none">
                     <span class="text-white text-sm tracking-wider uppercase">{{ image.category.name }}</span>
                 </div>

@@ -362,7 +362,7 @@
             <div class="card-image-slider">
               {% for img in gallery_images %}
                 <img
-                  src="{{ url_for('static', filename=img) }}"
+                  src="{{ url_for('static', filename=img.rsplit('.', 1)[0] ~ '.webp') }}"
                   alt="{{ category.name }}"
                   loading="lazy"
                   class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
@@ -408,7 +408,7 @@
             </div>
           {% elif category.cover_image %}
             <img
-              src="{{ url_for('static', filename=category.cover_image) }}"
+              src="{{ url_for('static', filename=category.cover_image.rsplit('.', 1)[0] ~ '.webp') }}"
               alt="{{ category.name }}"
               loading="lazy"
             >

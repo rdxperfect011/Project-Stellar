@@ -16,6 +16,7 @@ import os
 import uuid
 from werkzeug.utils import secure_filename
 from functools import wraps
+from sqlalchemy.orm import joinedload
 
 admin = Blueprint('admin', __name__)
 
@@ -138,8 +139,8 @@ def bookings():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     
-    enquiries_q = BookingEnquiry.query
-    bookings_q = Booking.query
+    enquiries_q = BookingEnquiry.query.options(joinedload(BookingEnquiry.accommodation), joinedload(BookingEnquiry.package))
+    bookings_q = Booking.query.options(joinedload(Booking.accommodation), joinedload(Booking.package))
     
     if search_query:
         search = f"%{search_query}%"

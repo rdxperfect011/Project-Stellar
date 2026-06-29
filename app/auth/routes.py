@@ -4,7 +4,7 @@ from app.models.user import User
 from app.auth.forms import LoginForm
 from urllib.parse import urlparse
 from app.utils.audit import log_admin_action
-from app import limiter
+
 
 auth = Blueprint('auth', __name__)
 

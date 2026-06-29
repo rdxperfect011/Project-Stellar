@@ -87,12 +87,12 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-muted-foreground mb-1" for="bm-rooms">Total Rooms</label>
-                                <input id="bm-rooms" type="number" x-model.number="formData.rooms" min="1" max="10" required
+                                <input id="bm-rooms" type="number" x-model.debounce.300ms.number="formData.rooms" min="1" max="10" required
                                        class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:outline-none focus:border-primary">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-muted-foreground mb-1" for="bm-guests">Total Guests</label>
-                                <input id="bm-guests" type="number" x-model.number="formData.guests" min="1" required
+                                <input id="bm-guests" type="number" x-model.debounce.300ms.number="formData.guests" min="1" required
                                        class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:outline-none focus:border-primary">
                             </div>
                         </div>
@@ -325,25 +325,29 @@
 
             // ── Lifecycle ──────────────────────────────────────────────────────
 
-            async init() {
-                try {
-                    const res = await fetch('/api/accommodations/pricing');
-                    if (res.ok) {
-                        this.roomTypes = await res.json();
-                        if (this.roomTypes.length > 0) {
-                            this.formData.accommodationId = this.roomTypes[0].id;
-                        }
-                    }
-                } catch (e) {
-                    console.error('Failed to fetch pricing data', e);
-                }
+            init() {
                 this.validateDates();
             },
 
-            openModal(details) {
+            async openModal(details) {
                 this.isOpen  = true;
                 this.status  = '';
                 this.message = '';
+
+                // Lazy load pricing data
+                if (this.roomTypes.length === 0) {
+                    try {
+                        const res = await fetch('/api/accommodations/pricing');
+                        if (res.ok) {
+                            this.roomTypes = await res.json();
+                            if (this.roomTypes.length > 0 && !this.formData.accommodationId) {
+                                this.formData.accommodationId = this.roomTypes[0].id;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Failed to fetch pricing data', e);
+                    }
+                }
 
                 if (details) {
                     this.formData.checkIn  = details.checkIn  || new Date().toISOString().split('T')[0];

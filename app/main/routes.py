@@ -33,27 +33,19 @@ def gallery():
     except Exception:
         pass
         
-    # 2. Get static folder images (specifically the ones from the photos directory)
+    # 2. Get static folder images
     static_images = []
-    hardcoded_files = [
-        "WhatsApp_Image_2026-06-28_at_03.31.19.jpeg",
-        "WhatsApp_Image_2026-06-28_at_03.31.19__1_.jpeg",
-        "WhatsApp_Image_2026-06-28_at_03.31.19__2_.jpeg",
-        "WhatsApp_Image_2026-06-28_at_03.31.20.jpeg",
-        "WhatsApp_Image_2026-06-28_at_03.31.20__1_.jpeg",
-        "WhatsApp_Image_2026-06-28_at_03.31.21.jpeg",
-        "WhatsApp_Image_2026-06-28_at_03.31.21__1_.jpeg",
-        "WhatsApp_Image_2026-06-28_at_03.31.23.jpeg",
-        "WhatsApp_Image_2026-06-28_at_03.31.26.jpeg",
-        "WhatsApp_Image_2026-06-28_at_03.31.27.jpeg",
-        "WhatsApp_Image_2026-06-28_at_03.31.29.jpeg",
-        "WhatsApp_Image_2026-06-28_at_03.31.30.jpeg"
-    ]
-    
-    db_urls = {img.url for img in db_images}
-    
-    for filename in hardcoded_files:
-            url = '/gallery/' + filename
+    gallery_dir = os.path.join(current_app.root_path, 'static', 'images', 'gallery')
+    if os.path.exists(gallery_dir):
+        all_files = sorted(os.listdir(gallery_dir))
+        
+        whatsapp_files = [f for f in all_files if f.startswith('WhatsApp') and f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))]
+        other_files = [f for f in all_files if not f.startswith('WhatsApp') and f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')) and not f.startswith('.')]
+        
+        db_urls = {img.url for img in db_images}
+        
+        for filename in whatsapp_files + other_files:
+            url = url_for('static', filename='images/gallery/' + filename)
             if url not in db_urls:
                 static_images.append({
                     'url': url,

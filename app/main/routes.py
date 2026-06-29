@@ -36,18 +36,18 @@ def gallery():
     # 2. Get static folder images (specifically the ones from the photos directory)
     static_images = []
     hardcoded_files = [
-        "WhatsApp Image 2026-06-28 at 03.31.19 (1).jpeg",
-        "WhatsApp Image 2026-06-28 at 03.31.19 (2).jpeg",
-        "WhatsApp Image 2026-06-28 at 03.31.19.jpeg",
-        "WhatsApp Image 2026-06-28 at 03.31.20 (1).jpeg",
-        "WhatsApp Image 2026-06-28 at 03.31.20.jpeg",
-        "WhatsApp Image 2026-06-28 at 03.31.21 (1).jpeg",
-        "WhatsApp Image 2026-06-28 at 03.31.21.jpeg",
-        "WhatsApp Image 2026-06-28 at 03.31.23.jpeg",
-        "WhatsApp Image 2026-06-28 at 03.31.26.jpeg",
-        "WhatsApp Image 2026-06-28 at 03.31.27.jpeg",
-        "WhatsApp Image 2026-06-28 at 03.31.29.jpeg",
-        "WhatsApp Image 2026-06-28 at 03.31.30.jpeg"
+        "WhatsApp_Image_2026-06-28_at_03.31.19.jpeg",
+        "WhatsApp_Image_2026-06-28_at_03.31.19__1_.jpeg",
+        "WhatsApp_Image_2026-06-28_at_03.31.19__2_.jpeg",
+        "WhatsApp_Image_2026-06-28_at_03.31.20.jpeg",
+        "WhatsApp_Image_2026-06-28_at_03.31.20__1_.jpeg",
+        "WhatsApp_Image_2026-06-28_at_03.31.21.jpeg",
+        "WhatsApp_Image_2026-06-28_at_03.31.21__1_.jpeg",
+        "WhatsApp_Image_2026-06-28_at_03.31.23.jpeg",
+        "WhatsApp_Image_2026-06-28_at_03.31.26.jpeg",
+        "WhatsApp_Image_2026-06-28_at_03.31.27.jpeg",
+        "WhatsApp_Image_2026-06-28_at_03.31.29.jpeg",
+        "WhatsApp_Image_2026-06-28_at_03.31.30.jpeg"
     ]
     
     db_urls = {img.url for img in db_images}

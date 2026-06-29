@@ -14,9 +14,9 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('admin.dashboard'))
         
-    form = LoginForm()
-    if request.method == 'POST':
-        try:
+    try:
+        form = LoginForm()
+        if request.method == 'POST':
             if form.validate_on_submit():
                 user = User.query.filter_by(email=form.email.data).first()
                 if user is not None and user.verify_password(form.password.data):
@@ -27,11 +27,12 @@ def login():
                         next_page = url_for('admin.dashboard')
                     return redirect(next_page)
                 flash('Invalid email or password.', 'error')
-        except Exception as e:
-            import traceback
-            print("POST /auth/login CRASH:", traceback.format_exc(), flush=True)
-            return {"error": str(e)}, 500
-    return render_template('auth/login.html', form=form)
+        return render_template('auth/login.html', form=form)
+    except Exception as e:
+        import traceback
+        from flask import jsonify
+        print("POST /auth/login CRASH:", traceback.format_exc(), flush=True)
+        return jsonify({"error": str(e)}), 500
 
 @auth.route('/logout')
 @login_required

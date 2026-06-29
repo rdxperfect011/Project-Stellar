@@ -1,8 +1,24 @@
-import os
-from app import create_app, db
-import app.models
+import sys
+print("STARTUP: Python version", sys.version, flush=True)
+print("STARTUP: Beginning imports", flush=True)
 
-import traceback
+try:
+    print("STARTUP: importing os", flush=True)
+    import os
+    print("STARTUP: os OK", flush=True)
+except Exception as e:
+    print("STARTUP CRASH on os import:", e, flush=True)
+    raise
+
+try:
+    print("STARTUP: importing app dependencies", flush=True)
+    from app import create_app, db
+    import app.models
+    import traceback
+    print("STARTUP: app dependencies OK", flush=True)
+except Exception as e:
+    print("STARTUP CRASH on app dependencies import:", e, flush=True)
+    raise
 
 try:
     app = create_app(os.getenv('FLASK_CONFIG') or 'default')

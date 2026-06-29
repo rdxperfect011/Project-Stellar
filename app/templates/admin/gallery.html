@@ -58,7 +58,11 @@
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {% for image in images %}
                 <div class="relative group aspect-square rounded-md overflow-hidden bg-background border border-border">
-                    <img src="{{ image.url }}" alt="{{ image.alt_text or 'Gallery image' }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    {% set img_url = image.url %}
+                    {% if img_url.startswith('/gallery/') %}
+                        {% set img_url = img_url.replace('/gallery/', '/static/images/gallery/').replace('.jpeg', '.webp').replace('.jpg', '.webp').replace('.png', '.webp') %}
+                    {% endif %}
+                    <img src="{{ img_url }}" alt="{{ image.alt_text or 'Gallery image' }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                     <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
                         <div class="flex justify-between items-start">
                             <span class="text-xs font-medium px-2 py-1 bg-background/80 text-foreground rounded uppercase tracking-wider">{{ image.category.name }}</span>

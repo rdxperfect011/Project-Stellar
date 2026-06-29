@@ -35,7 +35,7 @@ def gallery():
         
     # 2. Get static folder images (specifically the ones from the photos directory)
     static_images = []
-    gallery_dir = os.path.join(current_app.root_path, 'static', 'images', 'gallery')
+    gallery_dir = os.path.join(current_app.root_path, '..', 'public', 'gallery')
     if os.path.exists(gallery_dir):
         # Find all images
         all_files = sorted(os.listdir(gallery_dir))
@@ -47,7 +47,7 @@ def gallery():
         db_urls = {img.url for img in db_images}
         
         for filename in whatsapp_files + other_files:
-            url = url_for('static', filename='images/gallery/' + filename)
+            url = '/gallery/' + filename
             if url not in db_urls:
                 static_images.append({
                     'url': url,

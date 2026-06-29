@@ -1,0 +1,522 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Staff Management | Shrine Admin{% endblock %}
+
+{% block content %}
+<div x-data="staffManager()" x-init="init()">
+
+    {# ── Header ──────────────────────────────────────────────── #}
+    <div class="mb-8 flex flex-col md:flex-row justify-between md:items-center gap-4">
+        <div>
+            <h1 class="text-2xl font-semibold text-foreground">Staff Management</h1>
+            <p class="text-muted-foreground text-sm mt-1">Manage staff accounts and their access permissions.</p>
+        </div>
+        <button @click="openAddModal()"
+                class="bg-primary text-primary-foreground px-4 py-2 rounded-sm tracking-wide hover:bg-primary/90 transition-colors uppercase font-medium text-sm">
+            + Add Staff
+        </button>
+    </div>
+
+    {# ── Staff Table ─────────────────────────────────────────── #}
+    <div class="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-muted text-muted-foreground text-xs uppercase tracking-wider">
+                        <th class="p-4 font-medium">Name</th>
+                        <th class="p-4 font-medium">Role</th>
+                        <th class="p-4 font-medium">Email</th>
+                        <th class="p-4 font-medium">Added On</th>
+                        <th class="p-4 font-medium">Status</th>
+                        <th class="p-4 font-medium text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border text-sm">
+                    {% for member in staff_list %}
+                    <tr class="hover:bg-muted/50 transition-colors" id="staff-row-{{ member.id }}">
+                        {# ── Name ── #}
+                        <td class="p-4 font-medium text-foreground">{{ member.name or member.email }}</td>
+
+                        {# ── Role badge ── #}
+                        <td class="p-4">
+                            {% if member.role == 'ADMIN' %}
+                                <span class="px-2.5 py-1 text-xs rounded font-bold tracking-wider" style="background:#C9A84C;color:#1a1a1a;">ADMIN</span>
+                            {% elif member.role == 'MANAGER' %}
+                                <span class="px-2.5 py-1 text-xs rounded font-bold tracking-wider" style="background:#3B82F6;color:#fff;">MANAGER</span>
+                            {% else %}
+                                <span class="px-2.5 py-1 text-xs rounded font-bold tracking-wider" style="background:#444;color:#fff;">RECEPTIONIST</span>
+                            {% endif %}
+                        </td>
+
+                        {# ── Email ── #}
+                        <td class="p-4 text-muted-foreground">{{ member.email }}</td>
+
+                        {# ── Added On ── #}
+                        <td class="p-4 text-muted-foreground whitespace-nowrap">{{ member.created_at.strftime('%d %b %Y') }}</td>
+
+                        {# ── Status ── #}
+                        <td class="p-4">
+                            {% if member.is_active_staff %}
+                                <span class="inline-flex items-center gap-1.5 text-xs font-medium">
+                                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-red-400">
+                                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                                    Inactive
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        {# ── Actions ── #}
+                        <td class="p-4 text-right">
+                            {% if member.role != 'ADMIN' %}
+                                <button @click="openEditModal({{ member.id }}, '{{ member.name }}', '{{ member.email }}', '{{ member.phone or '' }}', '{{ member.role }}')"
+                                        class="bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors border border-blue-600/30 mr-1">
+                                    Edit
+                                </button>
+
+                                {% if member.is_active_staff %}
+                                    <button @click="confirmDeactivate({{ member.id }}, '{{ member.name }}')"
+                                            class="bg-yellow-600/20 text-yellow-500 hover:bg-yellow-600 hover:text-white px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors border border-yellow-600/30 mr-1">
+                                        Deactivate
+                                    </button>
+                                {% else %}
+                                    <form method="POST" action="{{ url_for('admin.staff_management') }}" class="inline-block mr-1">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="action" value="activate">
+                                        <input type="hidden" name="staff_id" value="{{ member.id }}">
+                                        <button type="submit"
+                                                class="bg-green-600/20 text-green-400 hover:bg-green-600 hover:text-white px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors border border-green-600/30">
+                                            Activate
+                                        </button>
+                                    </form>
+                                {% endif %}
+
+                                <button @click="confirmDelete({{ member.id }}, '{{ member.name }}')"
+                                        class="bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white px-3 py-1 rounded-sm text-xs font-bold uppercase tracking-wider transition-colors border border-red-600/30">
+                                    Delete
+                                </button>
+                            {% else %}
+                                <span class="text-xs text-muted-foreground italic">Protected</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="p-8 text-center text-muted-foreground">
+                            No staff members found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════
+       ADD STAFF MODAL
+    ═══════════════════════════════════════════════════════════ #}
+    <div x-show="showAddModal" x-transition.opacity
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display:none;">
+        <div @click.away="showAddModal = false"
+             class="bg-card border border-border rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto mx-4">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-semibold text-foreground">Add Staff Member</h2>
+                    <button @click="showAddModal = false" class="text-muted-foreground hover:text-foreground text-xl">&times;</button>
+                </div>
+
+                <form method="POST" action="{{ url_for('admin.staff_management') }}" class="space-y-5">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="add">
+
+                    {# Full Name #}
+                    <div>
+                        <label class="block text-xs font-medium text-muted-foreground mb-1">Full Name</label>
+                        <input type="text" name="full_name" required
+                               class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm focus:outline-none">
+                    </div>
+
+                    {# Email #}
+                    <div>
+                        <label class="block text-xs font-medium text-muted-foreground mb-1">Email Address</label>
+                        <input type="email" name="email" required
+                               class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm focus:outline-none">
+                    </div>
+
+                    {# Phone #}
+                    <div>
+                        <label class="block text-xs font-medium text-muted-foreground mb-1">Phone Number</label>
+                        <input type="tel" name="phone" required
+                               class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm focus:outline-none">
+                    </div>
+
+                    {# Role #}
+                    <div>
+                        <label class="block text-xs font-medium text-muted-foreground mb-1">Role</label>
+                        <select name="role" required x-model="selectedRole"
+                                class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm focus:outline-none">
+                            <option value="">Select a role</option>
+                            <option value="RECEPTIONIST">Receptionist</option>
+                            <option value="MANAGER">Manager</option>
+                        </select>
+                    </div>
+
+                    {# Password with strength indicator #}
+                    <div>
+                        <label class="block text-xs font-medium text-muted-foreground mb-1">Temporary Password</label>
+                        <div class="relative">
+                            <input :type="showPassword ? 'text' : 'password'" name="password" required minlength="8"
+                                   x-model="password"
+                                   class="w-full bg-background border border-border rounded-sm px-3 py-2 pr-10 text-foreground focus:border-primary text-sm focus:outline-none">
+                            <button type="button" @click="showPassword = !showPassword"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs">
+                                <span x-text="showPassword ? 'HIDE' : 'SHOW'"></span>
+                            </button>
+                        </div>
+                        {# Strength bar #}
+                        <div class="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-300"
+                                 :style="{ width: strengthWidth, background: strengthColor }"></div>
+                        </div>
+                        <p class="text-[11px] mt-1" :style="{ color: strengthColor }" x-text="strengthLabel"></p>
+                    </div>
+
+                    {# Permissions Preview #}
+                    <div x-show="selectedRole" x-transition class="bg-background border border-border rounded-md p-4">
+                        <h4 class="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-3">Permissions Preview</h4>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                            <template x-for="perm in getPermissions(selectedRole, 'can')" :key="perm">
+                                <div class="flex items-center gap-2 text-green-400">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <span class="text-xs" x-text="perm"></span>
+                                </div>
+                            </template>
+                            <template x-for="perm in getPermissions(selectedRole, 'cannot')" :key="perm">
+                                <div class="flex items-center gap-2 text-red-400">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    <span class="text-xs" x-text="perm"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    {# Buttons #}
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" @click="showAddModal = false"
+                                class="border border-border text-muted-foreground px-4 py-2 rounded-sm text-sm hover:bg-muted transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="bg-primary text-primary-foreground px-4 py-2 rounded-sm tracking-wide hover:bg-primary/90 transition-colors uppercase font-medium text-sm">
+                            Create Staff
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════
+       EDIT STAFF MODAL
+    ═══════════════════════════════════════════════════════════ #}
+    <div x-show="showEditModal" x-transition.opacity
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display:none;">
+        <div @click.away="showEditModal = false"
+             class="bg-card border border-border rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto mx-4">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-semibold text-foreground">Edit Staff Member</h2>
+                    <button @click="showEditModal = false" class="text-muted-foreground hover:text-foreground text-xl">&times;</button>
+                </div>
+
+                <form method="POST" action="{{ url_for('admin.staff_management') }}" class="space-y-5">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="edit">
+                    <input type="hidden" name="staff_id" :value="editId">
+
+                    {# Full Name #}
+                    <div>
+                        <label class="block text-xs font-medium text-muted-foreground mb-1">Full Name</label>
+                        <input type="text" name="full_name" required x-model="editName"
+                               class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm focus:outline-none">
+                    </div>
+
+                    {# Email #}
+                    <div>
+                        <label class="block text-xs font-medium text-muted-foreground mb-1">Email Address</label>
+                        <input type="email" name="email" required x-model="editEmail"
+                               class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm focus:outline-none">
+                    </div>
+
+                    {# Phone #}
+                    <div>
+                        <label class="block text-xs font-medium text-muted-foreground mb-1">Phone Number</label>
+                        <input type="tel" name="phone" required x-model="editPhone"
+                               class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm focus:outline-none">
+                    </div>
+
+                    {# Role #}
+                    <div>
+                        <label class="block text-xs font-medium text-muted-foreground mb-1">Role</label>
+                        <select name="role" required x-model="editRole"
+                                class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:border-primary text-sm focus:outline-none">
+                            <option value="RECEPTIONIST">Receptionist</option>
+                            <option value="MANAGER">Manager</option>
+                        </select>
+                    </div>
+
+                    {# Reset Password (optional) #}
+                    <div>
+                        <label class="block text-xs font-medium text-muted-foreground mb-1">Reset Password <span class="text-muted-foreground">(leave blank to keep current)</span></label>
+                        <div class="relative">
+                            <input :type="showEditPassword ? 'text' : 'password'" name="password" minlength="8"
+                                   x-model="editPassword"
+                                   class="w-full bg-background border border-border rounded-sm px-3 py-2 pr-10 text-foreground focus:border-primary text-sm focus:outline-none">
+                            <button type="button" @click="showEditPassword = !showEditPassword"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs">
+                                <span x-text="showEditPassword ? 'HIDE' : 'SHOW'"></span>
+                            </button>
+                        </div>
+                        <template x-if="editPassword.length > 0">
+                            <div>
+                                <div class="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-300"
+                                         :style="{ width: editStrengthWidth, background: editStrengthColor }"></div>
+                                </div>
+                                <p class="text-[11px] mt-1" :style="{ color: editStrengthColor }" x-text="editStrengthLabel"></p>
+                            </div>
+                        </template>
+                    </div>
+
+                    {# Permissions Preview #}
+                    <div x-show="editRole" x-transition class="bg-background border border-border rounded-md p-4">
+                        <h4 class="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-3">Permissions Preview</h4>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                            <template x-for="perm in getPermissions(editRole, 'can')" :key="perm">
+                                <div class="flex items-center gap-2 text-green-400">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    <span class="text-xs" x-text="perm"></span>
+                                </div>
+                            </template>
+                            <template x-for="perm in getPermissions(editRole, 'cannot')" :key="perm">
+                                <div class="flex items-center gap-2 text-red-400">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    <span class="text-xs" x-text="perm"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    {# Buttons #}
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" @click="showEditModal = false"
+                                class="border border-border text-muted-foreground px-4 py-2 rounded-sm text-sm hover:bg-muted transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="bg-primary text-primary-foreground px-4 py-2 rounded-sm tracking-wide hover:bg-primary/90 transition-colors uppercase font-medium text-sm">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════
+       DEACTIVATE CONFIRMATION DIALOG
+    ═══════════════════════════════════════════════════════════ #}
+    <div x-show="showDeactivateConfirm" x-transition.opacity
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display:none;">
+        <div @click.away="showDeactivateConfirm = false"
+             class="bg-card border border-border rounded-lg shadow-2xl w-full max-w-sm mx-4 p-6 text-center">
+            <svg class="w-12 h-12 text-yellow-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
+            <h3 class="text-lg font-semibold text-foreground mb-2">Deactivate <span x-text="deactivateName"></span>?</h3>
+            <p class="text-sm text-muted-foreground mb-6">They will lose access immediately.</p>
+            <div class="flex justify-center gap-3">
+                <button @click="showDeactivateConfirm = false"
+                        class="border border-border text-muted-foreground px-4 py-2 rounded-sm text-sm hover:bg-muted transition-colors">
+                    Cancel
+                </button>
+                <form method="POST" action="{{ url_for('admin.staff_management') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="deactivate">
+                    <input type="hidden" name="staff_id" :value="deactivateId">
+                    <button type="submit"
+                            class="bg-red-600 text-white px-4 py-2 rounded-sm text-sm font-medium hover:bg-red-700 transition-colors uppercase tracking-wide">
+                        Confirm Deactivate
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════
+       DELETE CONFIRMATION DIALOG
+    ═══════════════════════════════════════════════════════════ #}
+    <div x-show="showDeleteConfirm" x-transition.opacity
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" style="display:none;">
+        <div @click.away="showDeleteConfirm = false"
+             class="bg-card border border-border rounded-lg shadow-2xl w-full max-w-sm mx-4 p-6 text-center">
+            <svg class="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            <h3 class="text-lg font-semibold text-foreground mb-2">Delete <span x-text="deleteName"></span>?</h3>
+            <p class="text-sm text-muted-foreground mb-6">This action cannot be undone.</p>
+            <div class="flex justify-center gap-3">
+                <button @click="showDeleteConfirm = false"
+                        class="border border-border text-muted-foreground px-4 py-2 rounded-sm text-sm hover:bg-muted transition-colors">
+                    Cancel
+                </button>
+                <form method="POST" action="{{ url_for('admin.staff_management') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="staff_id" :value="deleteId">
+                    <button type="submit"
+                            class="bg-red-600 text-white px-4 py-2 rounded-sm text-sm font-medium hover:bg-red-700 transition-colors uppercase tracking-wide">
+                        Confirm Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% block extra_scripts %}
+<script>
+function staffManager() {
+    return {
+        // Add modal
+        showAddModal: false,
+        selectedRole: '',
+        password: '',
+        showPassword: false,
+
+        // Edit modal
+        showEditModal: false,
+        editId: null,
+        editName: '',
+        editEmail: '',
+        editPhone: '',
+        editRole: '',
+        editPassword: '',
+        showEditPassword: false,
+
+        // Deactivate dialog
+        showDeactivateConfirm: false,
+        deactivateId: null,
+        deactivateName: '',
+
+        // Delete dialog
+        showDeleteConfirm: false,
+        deleteId: null,
+        deleteName: '',
+
+        // Permission data
+        permissions: {
+            RECEPTIONIST: {
+                can: [
+                    'View Bookings & Enquiries',
+                    'Accept / Reject Enquiries',
+                    'Mark Check-in / Check-out',
+                    'View Contact Messages'
+                ],
+                cannot: [
+                    'View Dashboard Analytics',
+                    'View Revenue Data',
+                    'Manage Content',
+                    'Manage Staff',
+                    'View Audit Logs',
+                    'Export CSV'
+                ]
+            },
+            MANAGER: {
+                can: [
+                    'View Bookings & Enquiries',
+                    'Accept / Reject Enquiries',
+                    'Mark Check-in / Check-out',
+                    'View Contact Messages',
+                    'View Dashboard (no Revenue)',
+                    'View Booking Trends Chart',
+                    'Export CSV',
+                    'View Audit Logs'
+                ],
+                cannot: [
+                    'Manage Staff',
+                    'Manage Content',
+                    'View Revenue Data'
+                ]
+            }
+        },
+
+        init() {},
+
+        openAddModal() {
+            this.selectedRole = '';
+            this.password = '';
+            this.showPassword = false;
+            this.showAddModal = true;
+        },
+
+        openEditModal(id, name, email, phone, role) {
+            this.editId = id;
+            this.editName = name;
+            this.editEmail = email;
+            this.editPhone = phone;
+            this.editRole = role;
+            this.editPassword = '';
+            this.showEditPassword = false;
+            this.showEditModal = true;
+        },
+
+        confirmDeactivate(id, name) {
+            this.deactivateId = id;
+            this.deactivateName = name;
+            this.showDeactivateConfirm = true;
+        },
+
+        confirmDelete(id, name) {
+            this.deleteId = id;
+            this.deleteName = name;
+            this.showDeleteConfirm = true;
+        },
+
+        getPermissions(role, type) {
+            if (!role || !this.permissions[role]) return [];
+            return this.permissions[role][type] || [];
+        },
+
+        // ── Password strength helpers (Add modal) ───────
+        get strengthScore() { return this._calcStrength(this.password); },
+        get strengthWidth() { return ['0%', '33%', '66%', '100%'][this.strengthScore]; },
+        get strengthColor() { return ['#a3a3a3', '#ef4444', '#f59e0b', '#22c55e'][this.strengthScore]; },
+        get strengthLabel() {
+            if (!this.password) return '';
+            return ['', 'Weak', 'Medium', 'Strong'][this.strengthScore];
+        },
+
+        // ── Password strength helpers (Edit modal) ──────
+        get editStrengthScore() { return this._calcStrength(this.editPassword); },
+        get editStrengthWidth() { return ['0%', '33%', '66%', '100%'][this.editStrengthScore]; },
+        get editStrengthColor() { return ['#a3a3a3', '#ef4444', '#f59e0b', '#22c55e'][this.editStrengthScore]; },
+        get editStrengthLabel() {
+            if (!this.editPassword) return '';
+            return ['', 'Weak', 'Medium', 'Strong'][this.editStrengthScore];
+        },
+
+        _calcStrength(pw) {
+            if (!pw || pw.length < 1) return 0;
+            let score = 0;
+            if (pw.length >= 8) score++;
+            if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+            if (/[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw)) score++;
+            return Math.min(score, 3);
+        }
+    };
+}
+</script>
+{% endblock %}
+
+{% endblock %}

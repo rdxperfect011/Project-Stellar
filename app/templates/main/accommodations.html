@@ -1,52 +1,526 @@
 {% extends 'base.html' %}
 {% block title %}Accommodations | Shrine{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── Section divider ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0 auto 3.5rem;
+    max-width: 480px;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #C9A84C55, transparent);
+  }
+
+  /* ── Room card ── */
+  .room-card {
+    background: #1e1e1e;
+    border: 1px solid #2e2e2e;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+    position: relative;
+  }
+  .room-card:hover {
+    border-color: #C9A84C66;
+    box-shadow: 0 8px 40px rgba(201, 168, 76, 0.12), 0 2px 16px rgba(0,0,0,0.5);
+    transform: translateY(-3px);
+  }
+  .room-card.deluxe {
+    border-color: #C9A84C33;
+    box-shadow: 0 4px 24px rgba(201, 168, 76, 0.08);
+  }
+  .room-card.deluxe:hover {
+    border-color: #C9A84C88;
+    box-shadow: 0 12px 48px rgba(201, 168, 76, 0.2), 0 2px 16px rgba(0,0,0,0.6);
+  }
+
+  /* ── Image container ── */
+  .card-image-wrap {
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    min-height: 260px;
+  }
+
+  /* ── Image slider ── */
+  .card-image-slider {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 260px;
+  }
+  @media (min-width: 768px) {
+    .card-image-slider {
+      position: absolute;
+      inset: 0;
+    }
+  }
+
+  [x-cloak] {
+    display: none !important;
+  }
+  /* Desktop: left column (40% width) */
+  @media (min-width: 768px) {
+    .room-card-inner {
+      display: flex;
+      flex-direction: row;
+    }
+    .card-image-wrap {
+      width: 42%;
+    }
+    .card-body {
+      flex: 1;
+    }
+  }
+
+  .card-image-wrap img,
+  .card-image-slider img {
+    width: 100%;
+    height: 100%;
+    min-height: 260px;
+    object-fit: cover;
+    transition: transform 0.6s ease, opacity 0.5s ease;
+    display: block;
+  }
+  .room-card:hover .card-image-wrap img,
+  .room-card:hover .card-image-slider img {
+    transform: scale(1.06);
+  }
+
+  /* Image overlay gradient */
+  .card-image-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,0,0,0.35) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ── Gradient placeholder (when no image) ── */
+  .img-placeholder {
+    width: 100%;
+    min-height: 260px;
+    height: 100%;
+    display: block;
+  }
+  .img-placeholder.standard {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 40%, #1e1e30 100%);
+  }
+  .img-placeholder.deluxe-bg {
+    background: linear-gradient(135deg, #1a1400 0%, #3a2d08 45%, #1e1800 100%);
+  }
+
+  /* ── Sleeps badge ── */
+  .sleeps-badge {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    background: rgba(0,0,0,0.72);
+    border: 1px solid #C9A84C88;
+    color: #C9A84C;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
+    z-index: 2;
+  }
+  .sleeps-badge.deluxe-badge {
+    background: rgba(201, 168, 76, 0.15);
+    border-color: #C9A84C;
+  }
+
+  /* ── Most Popular ribbon ── */
+  .ribbon {
+    position: absolute;
+    top: 18px;
+    right: -28px;
+    background: linear-gradient(90deg, #b8912a, #C9A84C, #e0bf6a);
+    color: #111;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 5px 36px;
+    transform: rotate(35deg);
+    transform-origin: center;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    width: 130px;
+    text-align: center;
+  }
+
+  /* ── Card body ── */
+  .card-body {
+    padding: 2rem 2rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* ── Room title ── */
+  .room-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: #C9A84C;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+
+
+
+  /* ── Description ── */
+  .room-desc {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    color: #aaaaaa;
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+  }
+
+  /* ── Amenities ── */
+  .amenity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: #cccccc;
+    font-weight: 400;
+  }
+  .amenity-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: rgba(201, 168, 76, 0.15);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .amenity-check svg {
+    width: 10px;
+    height: 10px;
+    color: #C9A84C;
+    stroke: #C9A84C;
+  }
+
+  /* ── Price Range ── */
+  .price-range-wrap {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .price-range {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+  }
+  .price-from {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #C9A84C;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .price-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .price-night {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: #888;
+  }
+  .price-subtext {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-style: italic;
+    color: #888;
+  }
+
+  /* ── BOOK NOW button ── */
+  .btn-book {
+    display: block;
+    width: 100%;
+    background: linear-gradient(90deg, #b8912a, #C9A84C, #d4b654);
+    color: #111111;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 13px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: filter 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 4px 16px rgba(201, 168, 76, 0.25);
+  }
+  .btn-book:hover {
+    filter: brightness(1.12);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(201, 168, 76, 0.4);
+  }
+  .btn-book:active {
+    transform: translateY(0);
+    filter: brightness(0.96);
+  }
+
+  /* ── Section heading ── */
+  .choose-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #C9A84C;
+  }
+  .choose-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.15;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class='container mx-auto px-6 py-32 lg:px-12'>
-    <div class="text-center mb-16">
-        <span class="text-primary tracking-[0.3em] text-sm md:text-base uppercase mb-4 block font-medium">Your Sanctuary</span>
-        <h1 class='text-4xl md:text-6xl font-serif text-foreground mb-6'>Accommodations</h1>
-        <p class='text-lg text-muted-foreground max-w-2xl mx-auto'>Enjoy a comfortable stay in our modern guest house featuring well-furnished rooms, premium bedding, attached bathrooms, flat-screen TVs, tea/coffee facilities, and professional hospitality. Perfect for business travelers, families, tourists, and short-term stays. Experience cleanliness, comfort, and value in a peaceful environment.</p>
-    </div>
+<div class="container mx-auto px-6 py-32 lg:px-12">
 
-    <!-- Availability Widget -->
-    <div class="mb-16">
-        {% include 'main/components/availability_widget.html' %}
-    </div>
+  <!-- ── Page Hero ── -->
+  <div class="text-center mb-14">
+    <span class="text-primary tracking-[0.3em] text-sm uppercase mb-4 block font-medium">Your Sanctuary</span>
+    <h1 class="text-4xl md:text-6xl font-serif text-foreground mb-6">Accommodations</h1>
+    <p class="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+      Enjoy a comfortable stay in our modern guest house — premium bedding, attached bathrooms,
+      flat-screen TVs, tea &amp; coffee facilities, and warm mountain hospitality all included.
+    </p>
+  </div>
 
-    {% if categories %}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-        {% for category in categories %}
-        <div class="group bg-card rounded-lg overflow-hidden border border-border hover:border-primary/50 transition-colors duration-300">
-            <div class="aspect-w-16 aspect-h-10 overflow-hidden relative">
-                <img src="{{ url_for('static', filename=category.cover_image) if category.cover_image else url_for('static', filename='images/photo_3.jpeg') }}" alt="{{ category.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-                <div class="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-60"></div>
-                <div class="absolute bottom-4 left-6">
-                    <span class="bg-primary text-primary-foreground px-3 py-1 text-xs uppercase tracking-widest rounded-sm">Sleeps {{ category.capacity }}</span>
-                </div>
-            </div>
-            <div class="p-8">
-                <h2 class="text-2xl font-serif text-foreground mb-3 group-hover:text-primary transition-colors">{{ category.name }}</h2>
-                <p class="text-muted-foreground text-sm leading-relaxed mb-6">{{ category.description }}</p>
-                
-                {% if category.amenities %}
-                <div class="flex flex-wrap gap-4 mb-8">
-                    {% for amenity in category.amenities %}
-                    <span class="text-xs text-muted-foreground flex items-center gap-1.5"><svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>{{ amenity.name }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
 
-                <button @click="window.dispatchEvent(new CustomEvent('open-booking-modal', { detail: { accommodationId: {{ category.id }} } }))" class="inline-block border border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2.5 text-sm tracking-widest uppercase transition-all duration-300 w-full text-center rounded-sm">
-                    Book Now
+
+  <!-- ── Choose Your Room ── -->
+  <div class="text-center mb-10">
+    <p class="choose-label mb-3">Find Your Perfect Stay</p>
+    <h2 class="choose-heading mb-4">Choose Your Room</h2>
+  </div>
+
+  <!-- Decorative divider -->
+  <div class="section-divider">
+    <span style="color:#C9A84C; font-size:1.1rem;">✦</span>
+  </div>
+
+  <!-- ── Room Cards ── -->
+  {% if categories %}
+  <div class="flex flex-col gap-10 max-w-5xl mx-auto">
+
+    {% for category in categories %}
+    {% set is_deluxe = 'deluxe' in category.name | lower %}
+
+    <div class="room-card {% if is_deluxe %}deluxe{% endif %}" id="room-card-{{ category.id }}">
+
+      <!-- Most Popular ribbon (Deluxe only) -->
+      {% if is_deluxe %}
+      <div style="position:absolute;top:0;right:0;width:100px;height:100px;overflow:hidden;z-index:10;pointer-events:none;">
+        <div class="ribbon">Most Popular</div>
+      </div>
+      {% endif %}
+
+      <div class="room-card-inner">
+
+        <!-- ── Image / Placeholder ── -->
+        {% set gallery_images = category.gallery.split(',') if category.gallery else [] %}
+        <div class="card-image-wrap" {% if gallery_images | length > 1 %}x-data="{ activeIndex: 0, total: {{ gallery_images | length }} }"{% endif %}>
+          {% if gallery_images %}
+            <div class="card-image-slider">
+              {% for img in gallery_images %}
+                <img
+                  src="{{ url_for('static', filename=img) }}"
+                  alt="{{ category.name }}"
+                  loading="lazy"
+                  class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                  x-show="activeIndex === {{ loop.index0 }}"
+                  x-transition:enter="transition-opacity ease-out duration-500"
+                  x-transition:enter-start="opacity-0"
+                  x-transition:enter-end="opacity-100"
+                  x-transition:leave="transition-opacity ease-in duration-500"
+                  x-transition:leave-start="opacity-100"
+                  x-transition:leave-end="opacity-0"
+                  {% if not loop.first %}x-cloak{% endif %}
+                >
+              {% endfor %}
+              
+              <!-- Next/Prev Buttons -->
+              {% if gallery_images | length > 1 %}
+                <button 
+                  type="button"
+                  class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-primary hover:text-black text-white flex items-center justify-center transition-all focus:outline-none z-10"
+                  @click.stop="activeIndex = (activeIndex - 1 + total) % total"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                 </button>
+                <button 
+                  type="button"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-primary hover:text-black text-white flex items-center justify-center transition-all focus:outline-none z-10"
+                  @click.stop="activeIndex = (activeIndex + 1) % total"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </button>
+                
+                <!-- Dot Indicators -->
+                <div class="absolute bottom-4 right-4 flex gap-1.5 z-10 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">
+                  {% for _ in gallery_images %}
+                    <span 
+                      class="w-1.5 h-1.5 rounded-full cursor-pointer transition-all duration-300"
+                      :class="activeIndex === {{ loop.index0 }} ? 'bg-primary scale-125' : 'bg-white/40'"
+                      @click.stop="activeIndex = {{ loop.index0 }}"
+                    ></span>
+                  {% endfor %}
+                </div>
+              {% endif %}
             </div>
+          {% elif category.cover_image %}
+            <img
+              src="{{ url_for('static', filename=category.cover_image) }}"
+              alt="{{ category.name }}"
+              loading="lazy"
+            >
+          {% else %}
+            <div class="img-placeholder {% if is_deluxe %}deluxe-bg{% else %}standard{% endif %}"></div>
+          {% endif %}
+
+          <!-- Sleeps badge -->
+          <div class="sleeps-badge {% if is_deluxe %}deluxe-badge{% endif %}">
+            {% if is_deluxe %}
+              ★ Sleeps {{ category.capacity }} · King Bed
+            {% elif category.name == 'Triple Room' %}
+              Sleeps {{ category.capacity }} · Double & Single Bed
+            {% elif category.name == 'Four-Bed Room' %}
+              Sleeps {{ category.capacity }}
+            {% else %}
+              Sleeps {{ category.capacity }} · Double Bed
+            {% endif %}
+          </div>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="text-center py-24">
-        <p class="text-xl text-muted-foreground">We are currently preparing our accommodations. Please check back soon.</p>
-    </div>
-    {% endif %}
+
+        <!-- ── Card Body ── -->
+        <div class="card-body">
+          <div>
+            <!-- Title -->
+            <h3 class="room-title mb-4">{{ category.name }}</h3>
+
+            <!-- Description -->
+            <p class="room-desc">
+              {% if category.description %}
+                {{ category.description }}
+              {% elif is_deluxe %}
+                Our Deluxe Room elevates your mountain retreat with a plush king-size bed, artisan
+                furnishings, and panoramic mountain views that greet you each morning. Premium
+                bath amenities, a rainfall shower, and dedicated turndown service make every
+                evening feel effortlessly indulgent.
+              {% else %}
+                A thoughtfully designed haven that balances simplicity with comfort — crisp linen,
+                a spacious double bed, and a calming colour palette make this the ideal base
+                for exploring the mountains. All essentials are provided, so you can simply
+                arrive and unwind.
+              {% endif %}
+            </p>
+
+            <!-- Amenities -->
+            <div class="amenity-list">
+              {% if category.amenities %}
+                {% for amenity in category.amenities %}
+                <div class="amenity-item">
+                  <span class="amenity-check">
+                    <svg viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="1.5,6 4.5,9.5 10.5,2.5"/>
+                    </svg>
+                  </span>
+                  {{ amenity.name }}
+                </div>
+                {% endfor %}
+              {% else %}
+                {% for amenity in ['Free Wi-Fi', 'Free Parking', 'Friendly Environment'] %}
+                <div class="amenity-item">
+                  <span class="amenity-check">
+                    <svg viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="1.5,6 4.5,9.5 10.5,2.5"/>
+                    </svg>
+                  </span>
+                  {{ amenity }}
+                </div>
+                {% endfor %}
+              {% endif %}
+            </div>
+
+            <!-- Price Range -->
+            {% if category.name not in ['Triple Room', 'Four-Bed Room'] %}
+            <div class="price-range-wrap">
+              <div class="price-range">
+                <span class="price-from">From</span>
+                <span class="price-value">{% if is_deluxe %}₹2,200 – ₹4,800{% else %}₹1,800 – ₹3,800{% endif %}</span>
+                <span class="price-night">/ night</span>
+              </div>
+              <div class="price-subtext">Varies by number of guests</div>
+            </div>
+            {% endif %}
+
+          </div>
+
+          <!-- CTA -->
+          <button
+            id="book-now-{{ category.id }}"
+            class="btn-book"
+            @click="window.dispatchEvent(new CustomEvent('open-booking-modal', { detail: { accommodationId: {{ category.id }}, roomType: '{{ category.name }}' } }))"
+          >
+            {% if category.name in ['Triple Room', 'Four-Bed Room'] %}
+              Send Enquiry
+            {% else %}
+              Book Now
+            {% endif %}
+          </button>
+        </div><!-- /card-body -->
+
+      </div><!-- /room-card-inner -->
+    </div><!-- /room-card -->
+    {% endfor %}
+
+  </div><!-- /room cards grid -->
+
+  {% else %}
+  <div class="text-center py-24">
+    <p class="text-xl text-muted-foreground">We are currently preparing our accommodations. Please check back soon.</p>
+  </div>
+  {% endif %}
+
 </div>
+
+
 {% endblock %}

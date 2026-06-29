@@ -163,8 +163,9 @@ class PricingEngine:
         accommodation_id: int,
         num_rooms:        int,
         total_guests:     int,
-        nights:           int,
-        package_id:       Optional[int] = None,
+        nights           : int,
+        package_id       : Optional[int] = None,
+        meals_checked    : bool = False,
     ) -> PriceBreakdown:
         """
         Calculate the complete price breakdown for a booking.
@@ -206,7 +207,6 @@ class PricingEngine:
             )
 
         # ---- Distribute guests across rooms ---------------------------------
-        # e.g. 5 guests, 2 rooms → [3, 2]
         guest_distribution = PricingEngine._distribute_guests(total_guests, num_rooms)
 
         # ---- Price each room individually -----------------------------------
@@ -233,7 +233,10 @@ class PricingEngine:
         package_name = None
         meal_charges = 0.0
 
-        if package_id:
+        if meals_checked:
+            package_name = "Meals & Tea"
+            meal_charges = 500.0 * total_guests * nights
+        elif package_id:
             package = db.session.get(AccommodationPackage, package_id)
             if package and package.accommodation_id == accommodation_id:
                 package_name = package.name
@@ -367,37 +370,27 @@ class PricingEngine:
     @staticmethod
     def _get_rate(accommodation: AccommodationCategory, guests_in_room: int) -> float:
         """
-        Fetch the nightly rate for this room type at the given occupancy.
-
-        Lookup strategy (in order):
-        1. Exact match on `guests` column.
-        2. If guests_in_room < the lowest defined tier, use the lowest tier.
-           (e.g. 1 guest in a room → charged at the 2-guest rate)
-        3. If guests_in_room > the highest defined tier, use the highest tier.
-           (guards against unpriced overflow; should not occur after validation)
-        4. If no pricing is defined at all, return 0.0 (prevents crashes).
+        Fetch the nightly rate for this room type at the given guest occupancy
+        from the AccommodationPricing table.
         """
-        # 1. Exact match
-        exact = AccommodationPricing.query.filter_by(
-            accommodation_id=accommodation.id,
-            guests=guests_in_room,
-        ).first()
-        if exact:
-            return float(exact.price)
-
-        # Fetch all tiers sorted ascending once — used for fallback cases.
-        all_tiers = (
+        tier = (
+            AccommodationPricing.query
+            .filter_by(accommodation_id=accommodation.id, guests=guests_in_room)
+            .first()
+        )
+        if tier:
+            return float(tier.price)
+        
+        # Fallback to the closest available tier
+        closest = (
             AccommodationPricing.query
             .filter_by(accommodation_id=accommodation.id)
             .order_by(AccommodationPricing.guests.asc())
             .all()
         )
-        if not all_tiers:
+        if not closest:
             return 0.0
-
-        # 2. Below lowest tier → charge lowest tier rate
-        if guests_in_room < all_tiers[0].guests:
-            return float(all_tiers[0].price)
-
-        # 3. Above highest tier → charge highest tier rate
-        return float(all_tiers[-1].price)
+        
+        if guests_in_room < closest[0].guests:
+            return float(closest[0].price)
+        return float(closest[-1].price)

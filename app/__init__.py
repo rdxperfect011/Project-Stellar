@@ -58,6 +58,11 @@ def create_app(config_name='default'):
     
     register_error_handlers(app)
     
+    import json
+    import datetime
+    app.jinja_env.filters['fromjson'] = lambda v: json.loads(v) if v else {}
+    app.jinja_env.globals['now'] = datetime.datetime.now
+    
     return app
 
 def register_error_handlers(app):

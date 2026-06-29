@@ -64,12 +64,12 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-muted-foreground mb-1" for="bm-check-in">Check-in</label>
-                                <input id="bm-check-in" type="date" x-model="formData.checkIn" @change="recalculate()" required 
+                                <input id="bm-check-in" type="date" x-model="formData.checkIn" @change="validateDates()" required 
                                        class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:outline-none focus:border-primary">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-muted-foreground mb-1" for="bm-check-out">Check-out</label>
-                                <input id="bm-check-out" type="date" x-model="formData.checkOut" @change="recalculate()" required 
+                                <input id="bm-check-out" type="date" x-model="formData.checkOut" @change="validateDates()" required 
                                        class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:outline-none focus:border-primary">
                             </div>
                         </div>
@@ -78,7 +78,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-muted-foreground mb-1" for="bm-room-type">Room Type</label>
-                                <select id="bm-room-type" x-model="formData.accommodationId" @change="onRoomTypeChange()" 
+                                <select id="bm-room-type" x-model="formData.accommodationId" 
                                         class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:outline-none focus:border-primary">
                                     <template x-for="room in roomTypes" :key="room.id">
                                         <option :value="room.id" x-text="room.name"></option>
@@ -86,24 +86,18 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-muted-foreground mb-1" for="bm-rooms">Rooms</label>
-                                <select id="bm-rooms" x-model="formData.rooms" @change="onRoomsChange()" 
-                                        class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:outline-none focus:border-primary">
-                                    <template x-for="n in maxRooms" :key="n">
-                                        <option :value="n" x-text="n + (n === 1 ? ' Room' : ' Rooms')"></option>
-                                    </template>
-                                </select>
+                                <label class="block text-sm font-medium text-muted-foreground mb-1" for="bm-rooms">Total Rooms</label>
+                                <input id="bm-rooms" type="number" x-model.number="formData.rooms" min="1" max="10" required
+                                       class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:outline-none focus:border-primary">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-muted-foreground mb-1" for="bm-guests">Guests</label>
-                                <select id="bm-guests" x-model="formData.guests" @change="onGuestsChange()" 
-                                        class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:outline-none focus:border-primary">
-                                    <template x-for="n in maxGuests" :key="n">
-                                        <option :value="n" x-text="n + (n === 1 ? ' Guest' : ' Guests')"></option>
-                                    </template>
-                                </select>
+                                <label class="block text-sm font-medium text-muted-foreground mb-1" for="bm-guests">Total Guests</label>
+                                <input id="bm-guests" type="number" x-model.number="formData.guests" min="1" required
+                                       class="w-full bg-background border border-border rounded-sm px-3 py-2 text-foreground focus:outline-none focus:border-primary">
                             </div>
                         </div>
+
+
 
                         <!-- Row 3: Personal Details -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -125,24 +119,16 @@
                         </div>
 
                         <!-- Add-ons -->
-                        <template x-if="currentRoomPackages.length > 0">
-                            <div class="bg-muted/20 border border-border/60 p-4 rounded-sm">
-                                <h4 class="text-sm font-medium text-foreground mb-3">Optional Add-ons</h4>
-                                <template x-for="pkg in currentRoomPackages" :key="pkg.id">
-                                    <label class="flex items-start space-x-3 cursor-pointer py-1">
-                                        <input type="checkbox" :value="pkg.id" 
-                                               @change="togglePackage(pkg.id)"
-                                               :checked="formData.packageId == pkg.id"
-                                               class="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary">
-                                        <div>
-                                            <span class="block text-sm font-medium text-foreground" 
-                                                  x-text="pkg.name + ' — ₹' + pkg.price + (pkg.is_per_guest ? '/guest/night' : '/night')"></span>
-                                            <span class="block text-xs text-muted-foreground" x-text="pkg.description"></span>
-                                        </div>
-                                    </label>
-                                </template>
-                            </div>
-                        </template>
+                        <div class="bg-muted/20 border border-border/60 p-4 rounded-sm">
+                            <label class="flex items-start space-x-3 cursor-pointer py-1">
+                                <input type="checkbox" x-model="formData.mealsChecked" 
+                                       class="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary">
+                                <div>
+                                    <span class="block text-sm font-medium text-foreground">Meals & Tea</span>
+                                    <span class="block text-xs text-muted-foreground">₹500 per guest per night</span>
+                                </div>
+                            </label>
+                        </div>
 
                         <!-- Special Requests -->
                         <div>
@@ -152,79 +138,43 @@
                         </div>
 
                         <!-- ── Price Breakdown Panel ── -->
-                        <div class="border border-border rounded-sm overflow-hidden">
-                            <!-- Calculating spinner -->
-                            <div x-show="calculating" class="p-4 text-center text-muted-foreground text-sm animate-pulse">
-                                Calculating price…
-                            </div>
-
-                            <!-- Occupancy error -->
-                            <div x-show="!calculating && priceData && !priceData.is_valid" 
-                                 class="p-4 bg-red-900/15 border-b border-red-800/40 text-red-400 text-sm">
-                                <div class="flex gap-2">
-                                    <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                                    </svg>
-                                    <span x-text="priceData.validation_error"></span>
+                        <div x-show="!isPriceHidden" class="border border-border rounded-sm overflow-hidden p-4 bg-[#2a2a2a] font-mono text-sm">
+                            <template x-if="!isDatesValid">
+                                <div class="text-red-400 font-sans text-center">Unable to calculate price. Please check your selections.</div>
+                            </template>
+                            
+                            <template x-if="isDatesValid && overCapacity">
+                                <div class="text-[#C9A84C] font-sans text-center">
+                                    &#9888; <span x-text="totalGuests"></span> guests exceed capacity for <span x-text="formData.rooms"></span> room(s).<br>
+                                    Minimum <span x-text="suggestedRooms"></span> rooms needed.<br>
+                                    <a href="#" @click.prevent="formData.rooms = suggestedRooms" class="text-[#C9A84C] hover:text-[#d4b654] font-bold underline mt-2 inline-block">&rarr; Suggest <span x-text="suggestedRooms"></span> Rooms</a>
                                 </div>
-                            </div>
-
-                            <!-- No dates selected prompt -->
-                            <div x-show="!calculating && !priceData && (!formData.checkIn || !formData.checkOut)" 
-                                 class="p-4 text-muted-foreground text-sm italic text-center">
-                                Select check-in and check-out dates to see pricing.
-                            </div>
-
-                            <!-- Detailed breakdown (only when valid) -->
-                            <template x-if="!calculating && priceData && priceData.is_valid">
-                                <div>
-                                    <!-- Header row -->
-                                    <div class="bg-muted/30 px-4 py-2 border-b border-border">
-                                        <div class="flex justify-between items-center text-xs text-muted-foreground uppercase tracking-wider">
-                                            <span>Cost Breakdown</span>
-                                            <span x-text="priceData.nights + ' night' + (priceData.nights !== 1 ? 's' : '')"></span>
-                                        </div>
+                            </template>
+                            
+                            <template x-if="isDatesValid && !overCapacity && pricePerRoom === 0">
+                                <div class="text-red-400 font-sans text-center">Unable to calculate price. Please check your selections.</div>
+                            </template>
+                            
+                            <template x-if="isDatesValid && !overCapacity && pricePerRoom > 0">
+                                <div class="space-y-2 text-[#cccccc]">
+                                    <div class="text-[#888]">
+                                        ₹<span x-text="formatPrice(pricePerRoom)"></span> per room &middot; 
+                                        <span x-text="formData.rooms"></span> room(s) &middot; 
+                                        <span x-text="nights"></span> night(s) &middot; 
+                                        <span x-text="totalGuests"></span> guests
                                     </div>
-
-                                    <!-- Per-room rows -->
-                                    <div class="px-4 py-3 space-y-2">
-                                        <template x-for="room in priceData.rooms" :key="room.room_number">
-                                            <div class="flex justify-between items-center text-sm">
-                                                <span class="text-muted-foreground"
-                                                      x-text="'Room ' + room.room_number + ' (' + room.guests_in_room + ' guest' + (room.guests_in_room !== 1 ? 's' : '') + ') — ₹' + room.rate_per_night.toLocaleString('en-IN') + '/night × ' + priceData.nights + ' night' + (priceData.nights !== 1 ? 's' : '')"></span>
-                                                <span class="text-foreground font-medium" x-text="'₹' + room.room_total.toLocaleString('en-IN')"></span>
-                                            </div>
-                                        </template>
-
-                                        <!-- Meal package row -->
-                                        <template x-if="priceData.meal_charges > 0">
-                                            <div class="flex justify-between items-center text-sm">
-                                                <span class="text-muted-foreground" 
-                                                      x-text="(priceData.package_name || 'Meal Package') + ' (' + priceData.total_guests + ' guests × ' + priceData.nights + ' nights)'"></span>
-                                                <span class="text-foreground" x-text="'₹' + priceData.meal_charges.toLocaleString('en-IN')"></span>
-                                            </div>
-                                        </template>
-
-                                        <!-- Subtotal + tax separator -->
-                                        <div class="border-t border-border pt-2 mt-2 space-y-1.5">
-                                            <template x-if="priceData.tax > 0">
-                                                <div class="flex justify-between items-center text-sm text-muted-foreground">
-                                                    <span>Subtotal</span>
-                                                    <span x-text="'₹' + priceData.subtotal.toLocaleString('en-IN')"></span>
-                                                </div>
-                                            </template>
-                                            <template x-if="priceData.tax > 0">
-                                                <div class="flex justify-between items-center text-sm text-muted-foreground">
-                                                    <span>Tax</span>
-                                                    <span x-text="'₹' + priceData.tax.toLocaleString('en-IN')"></span>
-                                                </div>
-                                            </template>
-                                            <div class="flex justify-between items-center pt-1">
-                                                <span class="font-semibold text-foreground text-sm">Total</span>
-                                                <span class="font-bold text-primary text-xl" x-text="'₹' + priceData.total.toLocaleString('en-IN')"></span>
-                                            </div>
-                                            <p class="text-xs text-muted-foreground mt-1">Final amount confirmed on booking.</p>
+                                    <template x-if="isRounding">
+                                        <div class="text-[#888] text-xs">
+                                            Priced at <span x-text="priceKey"></span> guests/room rate (rounded up)
                                         </div>
+                                    </template>
+                                    <template x-if="formData.mealsChecked">
+                                        <div>
+                                            + Meals &amp; Tea: ₹500 &times; <span x-text="totalGuests"></span> guests &times; <span x-text="nights"></span> nights = ₹<span x-text="formatPrice(mealsCost)"></span>
+                                        </div>
+                                    </template>
+                                    <div class="border-t border-[#444] pt-2 mt-2 text-[#C9A84C] font-bold text-lg font-sans">
+                                        Estimated Total: ₹<span x-text="formatPrice(totalCost)"></span>
                                     </div>
                                 </div>
                             </template>
@@ -234,7 +184,7 @@
                         <div class="flex flex-col sm:flex-row sm:flex-row-reverse gap-3 pt-1">
                             <button type="submit" id="booking-submit-btn"
                                     class="w-full sm:w-auto inline-flex justify-center rounded-sm bg-primary px-6 py-3 text-sm font-semibold uppercase tracking-wider text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    :disabled="loading || calculating || (priceData && !priceData.is_valid)">
+                                    :disabled="loading || !isDatesValid || (!isPriceHidden && (pricePerRoom === 0 || overCapacity))">
                                 <span x-show="!loading">Submit Request</span>
                                 <span x-show="loading">Submitting…</span>
                             </button>
@@ -260,16 +210,14 @@
             status:      '',
             message:     '',
             roomTypes:   [],
-            priceData:   null,      // PriceBreakdown from /api/calculate-price
-            _calcTimer:  null,      // debounce timer
 
             formData: {
-                checkIn:          '',
-                checkOut:         '',
+                checkIn:          new Date().toISOString().split('T')[0],
+                checkOut:         new Date(Date.now() + 86400000).toISOString().split('T')[0],
                 rooms:            1,
                 guests:           2,
                 accommodationId:  '',
-                packageId:        null,
+                mealsChecked:     false,
                 fullName:         '',
                 email:            '',
                 phone:            '',
@@ -282,30 +230,97 @@
                 return this.roomTypes.find(r => r.id == this.formData.accommodationId);
             },
 
-            get currentRoomPackages() {
-                return this.currentRoom ? this.currentRoom.packages : [];
+            get isPriceHidden() {
+                return this.currentRoom && ['Triple Room', 'Four-Bed Room'].includes(this.currentRoom.name);
             },
 
-            /**
-             * Max rooms = physical inventory of this room type only.
-             * NOT limited by guest count — the backend validates per-room
-             * occupancy. Guests simply cannot be fewer than rooms selected.
-             */
-            get maxRooms() {
-                const inv = this.currentRoom ? this.currentRoom.internal_count : 5;
-                return Array.from({ length: inv }, (_, i) => i + 1);
+            getPriceKey(totalGuests, totalRooms) {
+                const perRoom = totalGuests / totalRooms;
+                if (perRoom <= 2) return 2;
+                if (perRoom <= 3) return 3;
+                if (perRoom <= 4) return 4;
+                return null;
             },
 
-            /**
-             * Max guests = total inventory × per-room capacity.
-             * Lets the user pick guests freely; the price panel
-             * validates and explains any occupancy errors inline.
-             */
-            get maxGuests() {
-                const perRoom    = this.currentRoom ? this.currentRoom.capacity : 4;
-                const totalRooms = this.currentRoom ? this.currentRoom.internal_count : 5;
-                const max = perRoom * totalRooms;
-                return Array.from({ length: max }, (_, i) => i + 1);
+            get priceKey() {
+                return this.getPriceKey(this.formData.guests, this.formData.rooms);
+            },
+
+            get overCapacity() {
+                return this.priceKey === null;
+            },
+
+            get suggestedRooms() {
+                return Math.ceil(this.formData.guests / 4);
+            },
+
+            get isRounding() {
+                const perRoom = this.totalGuests / (parseInt(this.formData.rooms) || 1);
+                return perRoom !== this.priceKey;
+            },
+
+            get pricePerRoom() {
+                const roomName = this.currentRoom ? this.currentRoom.name : '';
+                const type = (roomName || '').toLowerCase().includes('deluxe') ? 'deluxe' : 'standard';
+                const key = this.priceKey;
+                if (!key) return 0;
+                
+                const PRICES = {
+                    standard: { 2: 1900, 3: 2600, 4: 3650 },
+                    deluxe:   { 2: 2350, 3: 3350, 4: 4650 }
+                };
+                return PRICES[type][key] || 0;
+            },
+
+            get totalGuests() {
+                return parseInt(this.formData.guests) || 1;
+            },
+
+            get nights() {
+                if (!this.formData.checkIn || !this.formData.checkOut) return 0;
+                const start = new Date(this.formData.checkIn);
+                const end = new Date(this.formData.checkOut);
+                const diffTime = end - start;
+                return diffTime > 0 ? Math.ceil(diffTime / (1000 * 60 * 60 * 24)) : 0;
+            },
+
+            get isDatesValid() {
+                return this.nights > 0;
+            },
+
+            get roomCost() {
+                return this.pricePerRoom * parseInt(this.formData.rooms) * this.nights;
+            },
+
+            get mealsCost() {
+                return this.formData.mealsChecked ? (500 * this.totalGuests * this.nights) : 0;
+            },
+
+            get totalCost() {
+                return this.roomCost + this.mealsCost;
+            },
+
+            formatPrice(val) {
+                return Number(val).toLocaleString('en-IN');
+            },
+
+            validateDates() {
+                if (this.formData.checkIn && this.formData.checkOut) {
+                    const start = new Date(this.formData.checkIn);
+                    let end = new Date(this.formData.checkOut);
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    
+                    if (start < today) {
+                        this.formData.checkIn = today.toISOString().split('T')[0];
+                        start.setTime(today.getTime());
+                    }
+                    
+                    if (end <= start) {
+                        const newEnd = new Date(start.getTime() + 86400000);
+                        this.formData.checkOut = newEnd.toISOString().split('T')[0];
+                    }
+                }
             },
 
             // ── Lifecycle ──────────────────────────────────────────────────────
@@ -322,136 +337,37 @@
                 } catch (e) {
                     console.error('Failed to fetch pricing data', e);
                 }
+                this.validateDates();
             },
 
             openModal(details) {
                 this.isOpen  = true;
                 this.status  = '';
                 this.message = '';
-                this.priceData = null;
 
                 if (details) {
-                    this.formData.checkIn  = details.checkIn  || '';
-                    this.formData.checkOut = details.checkOut || '';
+                    this.formData.checkIn  = details.checkIn  || new Date().toISOString().split('T')[0];
+                    this.formData.checkOut = details.checkOut || new Date(Date.now() + 86400000).toISOString().split('T')[0];
                     this.formData.rooms    = parseInt(details.rooms)  || 1;
                     this.formData.guests   = parseInt(details.guests) || 2;
                     if (details.accommodationId) {
                         this.formData.accommodationId = details.accommodationId;
+                    } else if (details.roomType) {
+                        const matchedRoom = this.roomTypes.find(r => r.name === details.roomType);
+                        if (matchedRoom) {
+                            this.formData.accommodationId = matchedRoom.id;
+                        }
                     }
-                    if (this.formData.checkIn && this.formData.checkOut) {
-                        this.recalculate();
-                    }
-                }
-            },
-
-            // ── Event handlers ─────────────────────────────────────────────────
-
-            /**
-             * Room type changed → reset package, clamp rooms/guests to new
-             * type's inventory and capacity limits, then recalculate.
-             */
-            onRoomTypeChange() {
-                this.formData.packageId = null;
-
-                const maxRooms   = this.currentRoom ? this.currentRoom.internal_count : 5;
-                const maxGuests  = this.currentRoom
-                    ? this.currentRoom.capacity * this.currentRoom.internal_count
-                    : 20;
-
-                if (parseInt(this.formData.rooms) > maxRooms) {
-                    this.formData.rooms = maxRooms;
-                }
-                if (parseInt(this.formData.guests) > maxGuests) {
-                    this.formData.guests = maxGuests;
-                }
-                this.recalculate();
-            },
-
-            /**
-             * Number of ROOMS changed → ensure guests >= rooms (each room
-             * needs at least 1 guest).  Price recalculates immediately.
-             */
-            onRoomsChange() {
-                const rooms    = parseInt(this.formData.rooms)  || 1;
-                const guests   = parseInt(this.formData.guests) || 1;
-
-                // If rooms now exceed guests, bump guests up to match rooms.
-                // (Cannot have empty rooms.)
-                if (rooms > guests) {
-                    this.formData.guests = rooms;
-                }
-                this.recalculate();
-            },
-
-            /**
-             * Number of GUESTS changed → if guests drop below current room
-             * count, reduce rooms to match.  Never leave rooms > guests.
-             */
-            onGuestsChange() {
-                const guests   = parseInt(this.formData.guests) || 1;
-                const maxRooms = this.currentRoom ? this.currentRoom.internal_count : 5;
-                let   rooms    = parseInt(this.formData.rooms)  || 1;
-
-                // Each room needs at least 1 guest — reduce rooms if guests fell below.
-                if (rooms > guests) rooms = guests;
-                // Never exceed physical inventory.
-                if (rooms > maxRooms) rooms = maxRooms;
-                // Always at least 1 room.
-                if (rooms < 1) rooms = 1;
-
-                this.formData.rooms = rooms;
-                this.recalculate();
-            },
-
-            togglePackage(pkgId) {
-                this.formData.packageId = (this.formData.packageId == pkgId) ? null : pkgId;
-                this.recalculate();
-            },
-
-            /** Debounced recalculate — fires 300 ms after last change. */
-            recalculate() {
-                clearTimeout(this._calcTimer);
-                this._calcTimer = setTimeout(() => this._fetchPrice(), 300);
-            },
-
-            async _fetchPrice() {
-                const { checkIn, checkOut, accommodationId, rooms, guests, packageId } = this.formData;
-
-                if (!checkIn || !checkOut || !accommodationId) {
-                    this.priceData = null;
-                    return;
-                }
-
-                this.calculating = true;
-                try {
-                    const resp = await fetch('/api/calculate-price', {
-                        method:  'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body:    JSON.stringify({
-                            checkIn,
-                            checkOut,
-                            accommodationId: parseInt(accommodationId),
-                            rooms:           parseInt(rooms)   || 1,
-                            guests:          parseInt(guests)  || 1,
-                            packageId:       packageId ? parseInt(packageId) : null,
-                        }),
-                    });
-                    this.priceData = await resp.json();
-                } catch (e) {
-                    console.error('Price calculation failed', e);
-                    this.priceData = null;
-                } finally {
-                    this.calculating = false;
+                    this.validateDates();
                 }
             },
 
             // ── Submit ─────────────────────────────────────────────────────────
 
             async submitBooking() {
-                // Client-side occupancy guard
-                if (this.priceData && !this.priceData.is_valid) {
-                    this.status  = 'error';
-                    this.message = this.priceData.validation_error;
+                if (!this.isDatesValid || (!this.isPriceHidden && this.pricePerRoom === 0)) {
+                    this.status = 'error';
+                    this.message = 'Unable to calculate price. Please check your selections.';
                     return;
                 }
 
@@ -463,9 +379,9 @@
                     const payload = {
                         ...this.formData,
                         rooms:  parseInt(this.formData.rooms)  || 1,
-                        guests: parseInt(this.formData.guests) || 1,
+                        guests: this.totalGuests,
+                        meals_checked: this.formData.mealsChecked
                     };
-                    if (!payload.packageId) payload.packageId = null;
 
                     const response = await fetch('/api/booking-request', {
                         method:  'POST',
@@ -488,7 +404,7 @@
                         this.formData.email           = '';
                         this.formData.phone           = '';
                         this.formData.specialRequests = '';
-                        this.formData.packageId       = null;
+                        this.formData.mealsChecked    = false;
                     }
                 } catch (error) {
                     this.status  = 'error';

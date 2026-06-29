@@ -7,4 +7,6 @@ app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 if __name__ == '__main__':
     with app.app_context():
         db.create_all() # Ensure tables are created for local development
-    app.run(port=5001, debug=True)
+        from app.utils.db_seed import seed_database
+        seed_database()
+    app.run(port=5002, debug=True)

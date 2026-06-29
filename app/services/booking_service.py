@@ -54,13 +54,13 @@ class BookingService:
         if not accommodation:
             return {'success': False, 'error': 'Selected room type not found.'}
 
-        # Run pricing engine (includes occupancy validation)
         breakdown = PricingEngine.calculate(
             accommodation_id=int(accommodation_id),
             num_rooms=rooms,
             total_guests=guests,
             nights=nights,
             package_id=int(package_id) if package_id else None,
+            meals_checked=data.get('meals_checked', False),
         )
 
         if not breakdown.is_valid:

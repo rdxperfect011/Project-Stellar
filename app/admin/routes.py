@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
-from flask_login import login_required
+from flask_login import login_required, current_user
 from app import db
 from app.models.booking import BookingEnquiry, Booking, BlockedDate
 from app.models.content import GalleryCategory, GalleryImage, WebsiteSetting, Testimonial, Attraction, ContactInquiry
 from app.models.email import EmailTemplate
 from app.models.admin import AuditLog, AdminNotification
+from app.models.user import User
 from app.services.booking_service import BookingService
 from app.services.availability_service import AvailabilityService
 import csv
@@ -14,8 +15,22 @@ from datetime import datetime
 import os
 import uuid
 from werkzeug.utils import secure_filename
+from functools import wraps
 
 admin = Blueprint('admin', __name__)
+
+# ── Role-based access decorator ──────────────────────────────────────
+def role_required(page_slug):
+    """Decorator that checks current_user.can_access(page_slug).
+    Returns the restricted page if the role isn't allowed."""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.can_access(page_slug):
+                return render_template('admin/restricted.html'), 403
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 @admin.context_processor
 def inject_notifications():
@@ -25,6 +40,7 @@ def inject_notifications():
 
 @admin.route('/')
 @login_required
+@role_required('dashboard')
 def dashboard():
     today = datetime.now().date()
     start_of_month = today.replace(day=1)
@@ -32,8 +48,8 @@ def dashboard():
     new_enquiries = BookingEnquiry.query.filter_by(status='PENDING').count()
     total_bookings = Booking.query.filter(Booking.status != 'CANCELLED').count()
     
-    today_checkins = Booking.query.filter(db.func.date(Booking.check_in_date) == today, Booking.status == 'CONFIRMED').count()
-    today_checkouts = Booking.query.filter(db.func.date(Booking.check_out_date) == today, Booking.status == 'CONFIRMED').count()
+    today_checkins = Booking.query.filter(db.func.date(Booking.check_in_date) == today, Booking.status.in_(['CONFIRMED', 'CHECKED IN', 'COMPLETED'])).count()
+    today_checkouts = Booking.query.filter(db.func.date(Booking.check_out_date) == today, Booking.status.in_(['CONFIRMED', 'CHECKED IN', 'COMPLETED'])).count()
     
     # Revenue (this month)
     monthly_bookings = Booking.query.filter(Booking.created_at >= start_of_month, Booking.status.in_(['CONFIRMED', 'COMPLETED'])).all()
@@ -68,6 +84,7 @@ def dashboard():
 
 @admin.route('/bookings', methods=['GET', 'POST'])
 @login_required
+@role_required('bookings')
 def bookings():
     if request.method == 'POST':
         action = request.form.get('action')
@@ -93,6 +110,11 @@ def bookings():
                 new_status = 'COMPLETED' if action == 'COMPLETE' else 'CANCELLED'
                 BookingService.change_booking_status(booking_id, new_status)
                 flash(f'Booking marked as {new_status}.', 'success')
+                
+            elif action == 'CHECK_IN':
+                booking_id = request.form.get('booking_id')
+                BookingService.change_booking_status(booking_id, 'CHECKED IN')
+                flash('Guest checked in.', 'success')
                 
             elif action == 'ADD_MANUAL':
                 BookingService.create_manual_booking(request.form)
@@ -146,6 +168,7 @@ def bookings():
 
 @admin.route('/bookings/export')
 @login_required
+@role_required('export_csv')
 def export_bookings():
     bookings = Booking.query.order_by(Booking.created_at.desc()).all()
     
@@ -266,6 +289,7 @@ def gallery():
 
 @admin.route('/content')
 @login_required
+@role_required('content')
 def content():
     return render_template('admin/content.html')
 
@@ -273,6 +297,7 @@ def content():
 
 @admin.route('/availability', methods=['GET', 'POST'])
 @login_required
+@role_required('availability')
 def availability():
     if request.method == 'POST':
         action = request.form.get('action')
@@ -306,6 +331,7 @@ def availability():
 
 @admin.route('/testimonials', methods=['GET', 'POST'])
 @login_required
+@role_required('content')
 def testimonials():
     if request.method == 'POST':
         action = request.form.get('action')
@@ -354,6 +380,7 @@ def testimonials():
 
 @admin.route('/attractions', methods=['GET', 'POST'])
 @login_required
+@role_required('content')
 def attractions():
     if request.method == 'POST':
         action = request.form.get('action')
@@ -410,6 +437,7 @@ def attractions():
 
 @admin.route('/emails', methods=['GET', 'POST'])
 @login_required
+@role_required('emails')
 def emails():
     if request.method == 'POST':
         template_id = request.form.get('template_id')
@@ -459,12 +487,14 @@ def settings():
 
 @admin.route('/audit-logs')
 @login_required
+@role_required('audit_logs')
 def audit_logs():
     logs = AuditLog.query.order_by(AuditLog.created_at.desc()).limit(100).all()
     return render_template('admin/audit_logs.html', logs=logs)
 
 @admin.route('/inquiries', methods=['GET', 'POST'])
 @login_required
+@role_required('inquiries')
 def inquiries():
     if request.method == 'POST':
         action = request.form.get('action')
@@ -495,3 +525,138 @@ def availability_calendar():
     start = request.args.get('start')
     end = request.args.get('end')
     return jsonify(AvailabilityService.get_calendar_data(start, end))
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# STAFF MANAGEMENT
+# ═══════════════════════════════════════════════════════════════════════
+@admin.route('/staff', methods=['GET', 'POST'])
+@login_required
+@role_required('staff')
+def staff_management():
+    from app.utils.audit import log_admin_action
+
+    if request.method == 'POST':
+        action = request.form.get('action')
+
+        try:
+            # ── Add staff ──────────────────────────────────────
+            if action == 'add':
+                full_name = request.form.get('full_name', '').strip()
+                email = request.form.get('email', '').strip()
+                phone = request.form.get('phone', '').strip()
+                role = request.form.get('role', '').strip().upper()
+                password = request.form.get('password', '')
+
+                if role not in ('RECEPTIONIST', 'MANAGER'):
+                    flash('Invalid role selected.', 'error')
+                    return redirect(url_for('admin.staff_management'))
+
+                if User.query.filter_by(email=email).first():
+                    flash('A user with this email already exists.', 'error')
+                    return redirect(url_for('admin.staff_management'))
+
+                new_user = User(
+                    name=full_name,
+                    email=email,
+                    phone=phone,
+                    role=role,
+                    is_active_staff=True,
+                )
+                new_user.password = password
+                db.session.add(new_user)
+                db.session.commit()
+
+                log_admin_action(
+                    'Staff Added',
+                    f'{current_user.name or current_user.email} added {full_name} as {role}'
+                )
+                flash(f'{full_name} added as {role} successfully', 'success')
+
+            # ── Edit staff ─────────────────────────────────────
+            elif action == 'edit':
+                staff_id = request.form.get('staff_id')
+                member = User.query.get(staff_id)
+                if member and member.role != 'ADMIN':
+                    old_role = member.role
+                    member.name = request.form.get('full_name', '').strip()
+                    member.email = request.form.get('email', '').strip()
+                    member.phone = request.form.get('phone', '').strip()
+
+                    new_role = request.form.get('role', '').strip().upper()
+                    if new_role in ('RECEPTIONIST', 'MANAGER'):
+                        member.role = new_role
+
+                    new_password = request.form.get('password', '')
+                    if new_password:
+                        member.password = new_password
+
+                    db.session.commit()
+
+                    if old_role != member.role:
+                        log_admin_action(
+                            'Staff Role Changed',
+                            f'{current_user.name or current_user.email} changed {member.name}\'s role to {member.role}'
+                        )
+
+                    log_admin_action(
+                        'Staff Updated',
+                        f'{current_user.name or current_user.email} updated {member.name}\'s profile'
+                    )
+                    flash(f"{member.name}'s profile updated", 'success')
+
+            # ── Deactivate staff ───────────────────────────────
+            elif action == 'deactivate':
+                staff_id = request.form.get('staff_id')
+                member = User.query.get(staff_id)
+                if member and member.role != 'ADMIN':
+                    member.is_active_staff = False
+                    db.session.commit()
+                    log_admin_action(
+                        'Staff Deactivated',
+                        f'{current_user.name or current_user.email} deactivated {member.name}'
+                    )
+                    flash(f'{member.name} has been deactivated', 'success')
+
+            # ── Activate staff ─────────────────────────────────
+            elif action == 'activate':
+                staff_id = request.form.get('staff_id')
+                member = User.query.get(staff_id)
+                if member and member.role != 'ADMIN':
+                    member.is_active_staff = True
+                    db.session.commit()
+                    log_admin_action(
+                        'Staff Activated',
+                        f'{current_user.name or current_user.email} reactivated {member.name}'
+                    )
+                    flash(f'{member.name} has been reactivated', 'success')
+
+            # ── Delete staff ───────────────────────────────────
+            elif action == 'delete':
+                staff_id = request.form.get('staff_id')
+                member = User.query.get(staff_id)
+                if member and member.role != 'ADMIN':
+                    name_to_delete = member.name or member.email
+                    db.session.delete(member)
+                    db.session.commit()
+                    log_admin_action(
+                        'Staff Deleted',
+                        f'{current_user.name or current_user.email} deleted {name_to_delete}'
+                    )
+                    flash(f'{name_to_delete} has been deleted', 'success')
+
+        except Exception as e:
+            flash(f'Error processing staff action: {e}', 'error')
+
+        return redirect(url_for('admin.staff_management'))
+
+    # GET — list staff (Admin first)
+    staff_list = User.query.order_by(
+        db.case(
+            (User.role == 'ADMIN', 0),
+            (User.role == 'MANAGER', 1),
+            else_=2
+        ),
+        User.created_at.asc()
+    ).all()
+    return render_template('admin/staff.html', staff_list=staff_list)
